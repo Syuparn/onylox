@@ -1,0 +1,13 @@
+package {
+    name "onylox" 
+    author "syuparn" 
+    url "https://github.com/Syuparn/onylox" 
+    description "Lox language implemented in Onyx" 
+    version "0.0.1" 
+}
+
+config {
+    dependency_source_path "./lib" 
+    dependency_binary_path "./bin" 
+}
+

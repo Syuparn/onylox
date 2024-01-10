@@ -1,0 +1,5 @@
+use core { printf }
+
+main :: () {
+    printf("Hello, world!\n");
+}
