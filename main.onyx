@@ -1,5 +1,5 @@
-use core { printf }
+#load "./src/lox/lox"
 
-main :: () {
-    printf("Hello, world!\n");
+main :: (args) => {
+    run_lox(args);
 }

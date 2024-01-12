@@ -1,0 +1,21 @@
+use core { printf }
+use core.string { * }
+
+#load "./options"
+
+run_lox :: (args: [][&]u8) => {
+    options := parse_commandline_options(args);
+    switch options {
+        case h: .Help {
+            printf("Usage: onylox [script]\n");
+        }
+        case r: .Repl {
+            printf(">\n");
+        }
+        case f: .FileName {
+            printf("file: {}\n", f);
+        }
+        // never reached
+        case #default ---
+    }
+}

@@ -1,0 +1,25 @@
+use core.arg_parse { arg_parse }
+use core.string { as_str }
+
+Options :: union {
+    FileName: str;
+    Help: void;
+    Repl: void;
+}
+
+parse_commandline_options :: (args: [][&]u8) -> Options {
+    // NOTE: parse manually because arg_parse does not run expectedly...
+    if args.count <= 1 {
+        return Options.{ Repl = .{} };
+    }
+
+    arg := as_str(args[1]);
+    switch arg {
+        case "-h" {
+            return Options.{ Help = .{} };
+        }
+        case #default {
+            return Options.{ FileName = arg };
+        }
+    }
+}

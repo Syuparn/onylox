@@ -4,6 +4,6 @@
 # Run
 
 ```bash
-$ onyx build -r wasi -o onylox.wasm main.onyx
-$ wasmer run onylox.wasm
+$ make build
+$ wasmer run onylox.wasm -- hello.onyx
 ```
