@@ -1,6 +1,7 @@
 #load "./token"
+#load "./lox"
 
-use core { printf }
+use core { printf, tprintf }
 use core.list
 use core.list { List }
 
@@ -53,6 +54,9 @@ Scanner :: struct {
             }
             case '*' {
                 s->_add_token(TokenType.STAR);
+            }
+            case #default {
+                Lox.error(s.line, tprintf("Unexpected character \"{}\".", c));
             }
         }
     }

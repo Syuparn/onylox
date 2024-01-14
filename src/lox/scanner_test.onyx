@@ -11,6 +11,7 @@ test_scan_tokens :: () => {
         title: str;
         source: str;
         expected: []TokenType;
+        expected_had_error: bool;
     }
     tests := TestCase.[
         .{
@@ -29,6 +30,17 @@ test_scan_tokens :: () => {
                 TokenType.STAR,
                 TokenType.EOF,
             ],
+            expected_had_error=false,
+        },
+        .{
+            title="invalid characters are skipped with error messages",
+            source="(#)",
+            expected=TokenType.[
+                TokenType.LEFT_PAREN,
+                TokenType.RIGHT_PAREN,
+                TokenType.EOF,
+            ],
+            expected_had_error=true,
         },
     ];
 
@@ -36,7 +48,7 @@ test_scan_tokens :: () => {
         scanner := Scanner.{source=tt.source};
         actual := scanner->scan_tokens();
 
-        //assert(list.count(&actual) == tt.expected.length, tprintf("{} (size): {} != {}", tt.title, list.count(&actual), tt.expected.length));
+        assert(list.count(&actual) == tt.expected.length, tprintf("{} (size): {} != {}", tt.title, list.count(&actual), tt.expected.length));
 
         for entry: iter.zip(iter.as_iter(tt.expected), actual->as_iter()) {
             expected_token_type := entry.first;
@@ -44,6 +56,8 @@ test_scan_tokens :: () => {
 
             assert(actual_token.type == expected_token_type, tprintf("{}: \"{}\" != \"{}\"", tt.title, actual_token.type, expected_token_type));
         }
+
+        assert(had_error == tt.expected_had_error, tprintf("{} (had_error): {} != {}", tt.title, had_error, tt.expected_had_error));
     }
 }
 

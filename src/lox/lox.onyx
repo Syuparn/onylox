@@ -7,9 +7,9 @@ use runtime.platform
 #load "./options"
 #load "./scanner"
 
-Lox :: struct {
-    had_error: bool = false;
+had_error := false;
 
+Lox :: struct {
     main :: (l: &Lox, args: [][&]u8) => {
         __flush_stdio();
 
@@ -34,7 +34,7 @@ Lox :: struct {
         stdin := Lox._read_stdin();
         l->_run(stdin);
         // NOTE: ignore error for following lines
-        l.had_error = false;
+        had_error = false;
     }
 
     _read_stdin :: () -> str {
@@ -57,7 +57,7 @@ Lox :: struct {
             }
         };
 
-        if l.had_error {
+        if had_error {
             os.exit(65);
         }
     }
@@ -72,12 +72,12 @@ Lox :: struct {
         }
     }
 
-    error :: (l: &Lox, line: u32, message: str) {
-        l->_report(line, "", message);
+    error :: (line: u32, message: str) {
+        Lox._report(line, "", message);
     }
 
-    _report :: (l: &Lox, line: u32, where_: str, message: str) {
-        printf("[line {}] Error{}: {}", line, where_, message);
-        l.had_error = true;
+    _report :: (line: u32, where_: str, message: str) {
+        printf("[line {}] Error{}: {}\n", line, where_, message);
+        had_error = true;
     }
 }
