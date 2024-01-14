@@ -1,5 +1,6 @@
 #load "./src/lox/lox"
 
 main :: (args) => {
-    run_lox(args);
+    l := &Lox.{};
+    l->main(args);
 }

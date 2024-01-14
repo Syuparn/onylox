@@ -5,7 +5,7 @@
 
 ```bash
 $ make build
-$ wasmer run onylox.wasm -- hello.onyx
+$ wasmer run --mapdir examples:examples onylox.wasm -- examples/hello.onyx
 ```
 
 # Test

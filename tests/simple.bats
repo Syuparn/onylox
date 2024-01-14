@@ -10,4 +10,13 @@ setup() {
   assert_output "Usage: onylox [script]"
 }
 
-# TODO: run file
+# TODO: assert_output after evaluator is implemented
+@test "run a source file" {
+  run wasmer run --mapdir tests:tests onylox.wasm -- tests/testdata/src/hello.onyx
+  assert_success
+}
+
+@test "file not found" {
+  run wasmer run --mapdir tests:tests onylox.wasm -- tests/testdata/src/notfound.onyx
+  assert_output "Error: failed to read \"tests/testdata/src/notfound.onyx\": NotFound"
+}

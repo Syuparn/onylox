@@ -1,0 +1,8 @@
+Scanner :: struct {
+    source: str;
+
+    scan_tokens :: (s: &Scanner) -> []str {
+        // TODO: impl
+        return str.[s.source];
+    }
+}

@@ -1,21 +1,66 @@
 use core { printf }
+use core.os { close, exit, get_contents_from_file, open, OpenMode }
 use core.string { * }
 
 #load "./options"
+#load "./scanner"
 
-run_lox :: (args: [][&]u8) => {
-    options := parse_commandline_options(args);
-    switch options {
-        case h: .Help {
-            printf("Usage: onylox [script]\n");
+Lox :: struct {
+    had_error: bool = false;
+
+    main :: (l: &Lox, args: [][&]u8) => {
+        options := parse_commandline_options(args);
+        switch options {
+            case h: .Help {
+                printf("Usage: onylox [script]\n");
+            }
+            case r: .Repl {
+                printf(">\n");
+            }
+            case n: .FileName {
+                l->_run_file(n);
+            }
+            // never reached
+            case #default ---
         }
-        case r: .Repl {
-            printf(">\n");
+    }
+
+    _run_file :: (l: &Lox, path: str) => {
+        r := open(path, OpenMode.Read);
+
+        switch r {
+            case e: .Err {
+                printf("Error: failed to read \"{}\": {}\n", path, e);
+                exit(65);
+            }
+            case file: .Ok {
+                defer close(&file);
+                source := get_contents_from_file(&file);
+                l->_run(source);
+            }
+        };
+
+        if l.had_error {
+            exit(65);
         }
-        case f: .FileName {
-            printf("file: {}\n", f);
+    }
+
+    _run :: (l: &Lox, source: str) => {
+        scanner := &Scanner.{source=source};
+        tokens := scanner->scan_tokens();
+
+        // TODO: parse and eval
+        for token: tokens {
+            printf("{}\n", token);
         }
-        // never reached
-        case #default ---
+    }
+
+    error :: (l: &Lox, line: u32, message: str) {
+        l->_report(line, "", message);
+    }
+
+    _report :: (l: &Lox, line: u32, where_: str, message: str) {
+        printf("[line {}] Error{}: {}", line, where_, message);
+        l.had_error = true;
     }
 }
