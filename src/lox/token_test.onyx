@@ -1,0 +1,24 @@
+#load "./token"
+#load "./token_type"
+
+use core { tprintf }
+use core.iter
+
+test_token_to_string :: () => {
+    TestCase :: struct {
+        token: Token;
+        expected: str;
+    }
+    tests := TestCase.[
+        .{token=Token.{type=TokenType.AND, lexeme="&", literal=.{}, line=1}, expected="AND & any { data = (null), type =  }"},
+    ];
+
+    for tt: tests {
+        assert(tprintf("{}", tt.token) == tt.expected, tprintf("\"{}\" != \"{}\"", tprintf("{}", tt.token), tt.expected));
+    }
+}
+
+
+main :: () {
+    test_token_to_string();
+}

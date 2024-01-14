@@ -1,0 +1,17 @@
+#load "./token_type"
+
+use core { tprintf }
+use core.conv
+
+Token :: struct {
+    type: TokenType;
+    lexeme: str;
+    literal: any;
+    line: u32;
+}
+
+// define format for printf
+@conv.Custom_Format_Proc.{ Token }
+(output: &conv.Format_Output, format: &conv.Format, token: &Token) {
+    conv.format(output, "{} {} {}", token.type, token.lexeme, token.literal);
+}

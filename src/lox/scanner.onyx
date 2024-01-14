@@ -1,3 +1,5 @@
+#load "./token"
+
 Scanner :: struct {
     source: str;
 
