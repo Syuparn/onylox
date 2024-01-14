@@ -1,0 +1,52 @@
+#load "./scanner"
+#load "./token"
+#load "./token_type"
+
+use core { Pair, tprintf }
+use core.iter
+use core.list
+
+test_scan_tokens :: () => {
+    TestCase :: struct {
+        title: str;
+        source: str;
+        expected: []TokenType;
+    }
+    tests := TestCase.[
+        .{
+            title="1-character tokens",
+            source="(){},.-+;*",
+            expected=TokenType.[
+                TokenType.LEFT_PAREN,
+                TokenType.RIGHT_PAREN,
+                TokenType.LEFT_BRACE,
+                TokenType.RIGHT_BRACE,
+                TokenType.COMMA,
+                TokenType.DOT,
+                TokenType.MINUS,
+                TokenType.PLUS,
+                TokenType.SEMICOLON,
+                TokenType.STAR,
+                TokenType.EOF,
+            ],
+        },
+    ];
+
+    for tt: tests {
+        scanner := Scanner.{source=tt.source};
+        actual := scanner->scan_tokens();
+
+        //assert(list.count(&actual) == tt.expected.length, tprintf("{} (size): {} != {}", tt.title, list.count(&actual), tt.expected.length));
+
+        for entry: iter.zip(iter.as_iter(tt.expected), actual->as_iter()) {
+            expected_token_type := entry.first;
+            actual_token := entry.second;
+
+            assert(actual_token.type == expected_token_type, tprintf("{}: \"{}\" != \"{}\"", tt.title, actual_token.type, expected_token_type));
+        }
+    }
+}
+
+main :: () {
+    test_scan_tokens();
+}

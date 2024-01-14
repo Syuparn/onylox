@@ -3,6 +3,6 @@ build:
 
 test: build
 	@echo "--- unit tests ---"
-	find src/ -name "*_test.onyx" | xargs onyx run
+	find src/ -name "*_test.onyx" | xargs -I{} onyx run {}
 	@echo "--- integration tests ---"
 	bats tests

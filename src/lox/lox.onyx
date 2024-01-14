@@ -67,7 +67,7 @@ Lox :: struct {
         tokens := scanner->scan_tokens();
 
         // TODO: parse and eval
-        for token: tokens {
+        for token: tokens->as_iter() {
             printf("{}\n", token);
         }
     }
