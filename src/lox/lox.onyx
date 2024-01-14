@@ -1,6 +1,8 @@
-use core { printf }
-use core.os { close, exit, get_contents_from_file, open, OpenMode }
-use core.string { * }
+use core { __flush_stdio, printf }
+use core.io
+use core.os
+use core.string
+use runtime.platform
 
 #load "./options"
 #load "./scanner"
@@ -9,13 +11,16 @@ Lox :: struct {
     had_error: bool = false;
 
     main :: (l: &Lox, args: [][&]u8) => {
+        __flush_stdio();
+
         options := parse_commandline_options(args);
         switch options {
             case h: .Help {
                 printf("Usage: onylox [script]\n");
             }
             case r: .Repl {
-                printf(">\n");
+                printf("> ");
+                l->_run_prompt();
             }
             case n: .FileName {
                 l->_run_file(n);
@@ -25,23 +30,35 @@ Lox :: struct {
         }
     }
 
+    _run_prompt :: (l: &Lox) => {
+        stdin := Lox._read_stdin();
+        l->_run(stdin);
+        // NOTE: ignore error for following lines
+        l.had_error = false;
+    }
+
+    _read_stdin :: () -> str {
+        // TODO: impl (platform.__read_from_input did not work properly)
+        return "abc";
+    }
+
     _run_file :: (l: &Lox, path: str) => {
-        r := open(path, OpenMode.Read);
+        r := os.open(path, os.OpenMode.Read);
 
         switch r {
             case e: .Err {
                 printf("Error: failed to read \"{}\": {}\n", path, e);
-                exit(65);
+                os.exit(65);
             }
             case file: .Ok {
-                defer close(&file);
-                source := get_contents_from_file(&file);
+                defer os.close(&file);
+                source := os.get_contents_from_file(&file);
                 l->_run(source);
             }
         };
 
         if l.had_error {
-            exit(65);
+            os.exit(65);
         }
     }
 
