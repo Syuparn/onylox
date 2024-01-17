@@ -76,6 +76,66 @@ test_scan_tokens :: () => {
             expected_had_error=false,
         },
         .{
+            title="identifier",
+            source="foo",
+            expected=TokenType.[
+                TokenType.IDENTIFIER,
+                TokenType.EOF,
+            ],
+            expected_had_error=false,
+        },
+        .{
+            title="identifier (underscored)",
+            source="_foo",
+            expected=TokenType.[
+                TokenType.IDENTIFIER,
+                TokenType.EOF,
+            ],
+            expected_had_error=false,
+        },
+        .{
+            title="identifier (camelcase)",
+            source="fooBar",
+            expected=TokenType.[
+                TokenType.IDENTIFIER,
+                TokenType.EOF,
+            ],
+            expected_had_error=false,
+        },
+        .{
+            title="identifier (numeric)",
+            source="foo123",
+            expected=TokenType.[
+                TokenType.IDENTIFIER,
+                TokenType.EOF,
+            ],
+            expected_had_error=false,
+        },
+        .{
+            title="keywords",
+            source="and class else false for fun if nil or print return super this true var while",
+            expected=TokenType.[
+                TokenType.AND,
+                TokenType.CLASS,
+                TokenType.ELSE,
+                TokenType.FALSE,
+                TokenType.FOR,
+                TokenType.FUN,
+                TokenType.IF,
+                TokenType.NIL,
+                TokenType.OR,
+                TokenType.PRINT,
+                TokenType.RETURN,
+                TokenType.SUPER,
+                TokenType.THIS,
+                TokenType.TRUE,
+                TokenType.VAR,
+                TokenType.WHILE,
+                TokenType.EOF,
+            ],
+            expected_had_error=false,
+        },
+        .{
             title="line comments",
             source="// foobarhoge",
             expected=TokenType.[

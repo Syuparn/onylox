@@ -1,10 +1,11 @@
 #load "./token"
 #load "./lox"
 
-use core { printf, tprintf }
+use core { Map, printf, tprintf }
 use core.conv
 use core.list
 use core.list { List }
+use core.map
 
 Scanner :: struct {
     source: str;
@@ -94,6 +95,8 @@ Scanner :: struct {
             case #default {
                 if s->_is_digit(c) {
                     s->_number();
+                } elseif s->_is_alpha(c) {
+                    s->_identifier();
                 } else {
                     Lox.error(s.line, tprintf("Unexpected character \"{}\".", c));
                 }
@@ -168,6 +171,33 @@ Scanner :: struct {
         s->_add_token(TokenType.NUMBER, TokenLiteral.{Number=value});
     }
 
+    _is_alpha :: (s: &Scanner, c: u8) -> bool {
+        return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || c == '_';
+    }
+
+    _is_alpha_numeric :: (s: &Scanner, c: u8) -> bool {
+        return s->_is_alpha(c) || s->_is_digit(c);
+    }
+
+    _identifier :: (s: &Scanner) {
+        while s->_is_alpha_numeric(s->_peek()) {
+            s->_advance();
+        }
+
+        text := s.source[s.start .. s.current];
+        keywords := s->_keywords();
+        o := map.get(&keywords, text);
+        switch o {
+            case .None {
+                s->_add_token(TokenType.IDENTIFIER);
+                return;
+            }
+            case type: .Some {
+                s->_add_token(type);
+            }
+        }
+    }
+
     _is_at_end :: (s: &Scanner) -> bool {
         return s.current >= s.source.length;
     }
@@ -176,6 +206,27 @@ Scanner :: struct {
         current := s.current;
         s.current += 1;
         return s.source[current];
+    }
+
+    _keywords :: (s: &Scanner) -> Map(str, TokenType) {
+        return Map.literal(str, TokenType, .[
+            .{ "and", TokenType.AND },
+            .{ "class", TokenType.CLASS },
+            .{ "else", TokenType.ELSE },
+            .{ "false", TokenType.FALSE },
+            .{ "for", TokenType.FOR },
+            .{ "fun", TokenType.FUN },
+            .{ "if", TokenType.IF },
+            .{ "nil", TokenType.NIL },
+            .{ "or", TokenType.OR },
+            .{ "print", TokenType.PRINT },
+            .{ "return", TokenType.RETURN },
+            .{ "super", TokenType.SUPER },
+            .{ "this", TokenType.THIS },
+            .{ "true", TokenType.TRUE },
+            .{ "var", TokenType.VAR },
+            .{ "while", TokenType.WHILE },
+        ]);
     }
 
     _add_token :: #match {
