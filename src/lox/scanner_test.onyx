@@ -33,11 +33,102 @@ test_scan_tokens :: () => {
             expected_had_error=false,
         },
         .{
+            title="1-character(not matched) tokens",
+            source="=!<>/",
+            expected=TokenType.[
+                TokenType.EQUAL,
+                TokenType.BANG,
+                TokenType.LESS,
+                TokenType.GREATER,
+                TokenType.SLASH,
+                TokenType.EOF,
+            ],
+            expected_had_error=false,
+        },
+        .{
+            title="2-character tokens",
+            source="!= == <= >=",
+            expected=TokenType.[
+                TokenType.BANG_EQUAL,
+                TokenType.EQUAL_EQUAL,
+                TokenType.LESS_EQUAL,
+                TokenType.GREATER_EQUAL,
+                TokenType.EOF,
+            ],
+            expected_had_error=false,
+        },
+        .{
+            title="string literal",
+            source="\"foo\"",
+            expected=TokenType.[
+                TokenType.STRING,
+                TokenType.EOF,
+            ],
+            expected_had_error=false,
+        },
+        .{
+            title="number",
+            source="1.23",
+            expected=TokenType.[
+                TokenType.NUMBER,
+                TokenType.EOF,
+            ],
+            expected_had_error=false,
+        },
+        .{
+            title="line comments",
+            source="// foobarhoge",
+            expected=TokenType.[
+                TokenType.EOF,
+            ],
+            expected_had_error=false,
+        },
+        .{
+            title="space",
+            source=" ",
+            expected=TokenType.[
+                TokenType.EOF,
+            ],
+            expected_had_error=false,
+        },
+        .{
+            title="space \\r",
+            source="\r",
+            expected=TokenType.[
+                TokenType.EOF,
+            ],
+            expected_had_error=false,
+        },
+        .{
+            title="tab",
+            source="\t",
+            expected=TokenType.[
+                TokenType.EOF,
+            ],
+            expected_had_error=false,
+        },
+        .{
+            title="new line",
+            source="\n",
+            expected=TokenType.[
+                TokenType.EOF,
+            ],
+            expected_had_error=false,
+        },
+        .{
             title="invalid characters are skipped with error messages",
             source="(#)",
             expected=TokenType.[
                 TokenType.LEFT_PAREN,
                 TokenType.RIGHT_PAREN,
+                TokenType.EOF,
+            ],
+            expected_had_error=true,
+        },
+        .{
+            title="unterminated string raises error messages",
+            source="\"unterminated",
+            expected=TokenType.[
                 TokenType.EOF,
             ],
             expected_had_error=true,
@@ -61,6 +152,40 @@ test_scan_tokens :: () => {
     }
 }
 
+test_scan_tokens_literals :: () => {
+    TestCase :: struct {
+        title: str;
+        source: str;
+        expected: TokenLiteral;
+    }
+    tests := TestCase.[
+        .{
+            title="string literal",
+            source="\"foo\"",
+            expected=TokenLiteral.{String="foo"},
+        },
+        .{
+            title="number literal (int)",
+            source="123",
+            expected=TokenLiteral.{Number=123},
+        },
+        .{
+            title="number literal (float)",
+            source="123.45",
+            expected=TokenLiteral.{Number=123.45},
+        },
+    ];
+
+    for tt: tests {
+        scanner := Scanner.{source=tt.source};
+        actual := scanner->scan_tokens();
+
+        actual_token := actual.first.data; // NOTE: list.at does not work unfortunalely
+        assert(actual_token.literal == tt.expected, tprintf("{}: \"{}\" != \"{}\"", tt.title, actual_token.literal, tt.expected));
+    }
+}
+
 main :: () {
     test_scan_tokens();
+    test_scan_tokens_literals();
 }

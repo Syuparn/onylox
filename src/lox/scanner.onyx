@@ -2,6 +2,7 @@
 #load "./lox"
 
 use core { printf, tprintf }
+use core.conv
 use core.list
 use core.list { List }
 
@@ -55,10 +56,116 @@ Scanner :: struct {
             case '*' {
                 s->_add_token(TokenType.STAR);
             }
+            case '!' {
+                s->_add_token(TokenType.BANG_EQUAL if s->_match('=') else TokenType.BANG);
+            }
+            case '=' {
+                s->_add_token(TokenType.EQUAL_EQUAL if s->_match('=') else TokenType.EQUAL);
+            }
+            case '<' {
+                s->_add_token(TokenType.LESS_EQUAL if s->_match('=') else TokenType.LESS);
+            }
+            case '>' {
+                s->_add_token(TokenType.GREATER_EQUAL if s->_match('=') else TokenType.GREATER);
+            }
+            case '/' {
+                if s->_match('/') {
+                    // line comment
+                    while s->_peek() != '\n' && !s->_is_at_end() {
+                        s->_advance();
+                    }
+                } else {
+                    s->_add_token(TokenType.SLASH);
+                }
+            }
+            case '"' {
+                s->_string();
+            }
+            // ignore spaces
+            case ' ' {
+            }
+            case '\r' {
+            }
+            case '\t' {
+            }
+            case '\n' {
+                s.line += 1;
+            }
             case #default {
-                Lox.error(s.line, tprintf("Unexpected character \"{}\".", c));
+                if s->_is_digit(c) {
+                    s->_number();
+                } else {
+                    Lox.error(s.line, tprintf("Unexpected character \"{}\".", c));
+                }
             }
         }
+    }
+
+    _peek :: (s: &Scanner) -> u8 {
+        if s->_is_at_end() {
+            return '\0';
+        }
+        return s.source[s.current];
+    }
+
+    _peek_next :: (s: &Scanner) -> u8 {
+        if s.current + 1 >= s.source.length {
+            return '\0';
+        }
+        return s.source[s.current+1];
+    }
+
+    _match :: (s: &Scanner, expected: u8) -> bool {
+        if s->_is_at_end() {
+            return false;
+        }
+        if s.source[s.current] != expected {
+            return false;
+        }
+        s.current += 1;
+        return true;
+    }
+
+    _string :: (s: &Scanner) => {
+        while s->_peek() != '"' && !s->_is_at_end() {
+            if s->_peek() == '\n' {
+                s.line += 1;
+            }
+            s->_advance();
+        }
+
+        if s->_is_at_end() {
+            Lox.error(s.line, tprintf("Unterminated string."));
+            return;
+        }
+
+        // consume end `"`
+        s->_advance();
+
+        value := s.source[s.start+1 .. s.current-1];
+        s->_add_token(TokenType.STRING, TokenLiteral.{String=value});
+    }
+
+    _is_digit :: (s: &Scanner, c: u8) -> bool {
+        return c >= '0' && c <= '9';
+    }
+
+    _number :: (s: &Scanner) {
+        while s->_is_digit(s->_peek()) {
+            s->_advance();
+        }
+
+        if s->_peek() == '.' && s->_is_digit(s->_peek_next()) {
+            // consume `.`
+            s->_advance();
+
+            while s->_is_digit(s->_peek()) {
+                s->_advance();
+            }
+        }
+
+        value := conv.str_to_f64(s.source[s.start .. s.current]);
+        s->_add_token(TokenType.NUMBER, TokenLiteral.{Number=value});
     }
 
     _is_at_end :: (s: &Scanner) -> bool {
@@ -73,9 +180,9 @@ Scanner :: struct {
 
     _add_token :: #match {
         (s: &Scanner, type: TokenType) {
-            return s->_add_token(type, null);
+            return s->_add_token(type, TokenLiteral.{Null=.{}});
         },
-        (s: &Scanner, type: TokenType, literal: any) {
+        (s: &Scanner, type: TokenType, literal: TokenLiteral) {
             text := s.source[s.start..s.current];
             list.push_end(&s.tokens, Token.{type=type, lexeme=text, literal=literal, line=s.line});
         },
