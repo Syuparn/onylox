@@ -1,0 +1,29 @@
+#load "./ast_printer"
+#load "./expr"
+#load "./token"
+#load "./token_type"
+
+use core { printf, tprintf }
+
+test_ast_printer :: () => {
+    TestCase :: struct {
+        expr: ^Expr;
+        expected: str;
+    }
+    tests := TestCase.[
+        .{
+            expr=&Expr.Literal.{value=TokenLiteral.{Number=123}},
+            expected="123",
+        },
+    ];
+
+    for tt: tests {
+        printer := ASTPrinter.{};
+        actual := printer->print(tt.expr);
+        assert(actual == tt.expected, tprintf("\"{}\" != \"{}\"", actual, tt.expected));
+    }
+}
+
+main :: () {
+    test_ast_printer();
+}

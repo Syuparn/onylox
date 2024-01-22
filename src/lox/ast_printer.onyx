@@ -1,0 +1,46 @@
+#load "./expr"
+
+use core { printf, tprintf }
+use core.string
+
+ASTPrinter :: struct {
+    // HACK: receiver must have non-void fields, otherwise the error `Function parameters cannot have 'void' as their type.` is raised
+    _dummy: bool;
+
+    print :: (p: ASTPrinter, expr: ^Expr) -> str {
+        return expr->accept(p, "");
+    }
+
+    visitBinaryExpr :: (p: ASTPrinter, expr: Expr.Binary) -> str {
+        return p->parenthesize(expr.operator.lexeme, expr.left, expr.right);
+    }
+
+    visitLiteralExpr :: (p: ASTPrinter, expr: Expr.Literal) -> str {
+        switch expr.value {
+            case .Null {
+                return "nil";
+            }
+            case s: .String {
+                return tprintf("\"{}\"", s);
+            }
+            case n: .Number {
+                return tprintf("{}", n);
+            }
+            case #default {
+                return tprintf("{}", expr.value);
+            }
+        }
+    }
+
+    parenthesize :: (p: ASTPrinter, name: str, exprs: ..Expr) -> str {
+        buffer := string.buffer_make("", "(");
+        string.buffer_append(&buffer, name);
+        for expr: exprs {
+            string.buffer_append(&buffer, " ");
+            string.buffer_append(&buffer, expr->accept(p, ""));
+        }
+        string.buffer_append(&buffer, ")");
+
+        return string.buffer_to_str(&buffer);
+    }
+}

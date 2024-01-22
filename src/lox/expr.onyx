@@ -1,0 +1,37 @@
+#load "./token"
+
+use core { printf }
+use core.slice
+
+Expr :: struct {
+    _dummy: bool;
+
+    accept :: (e: &Expr, visitor: $T, _: $R) -> R where Expr.Visitor(T, R) {
+        printf("WARN: Expr#accept should be overridden\n");
+    }
+
+    Visitor :: interface (t: $T, _: $R) {
+        { t->visitBinaryExpr(Expr.Binary.{}) } -> R;
+        { t->visitLiteralExpr(Expr.Literal.{}) } -> R;
+    }
+
+    Binary :: struct {
+        use base: Expr;
+        left: Expr;
+        operator: Token;
+        right: Expr;
+
+        accept :: (b: &Binary, visitor: $T, _: $R) -> R where Expr.Visitor(T, R) {
+            return visitor->visitBinaryExpr(b);
+        }
+    }
+
+    Literal :: struct {
+        use base: Expr;
+        value: TokenLiteral;
+
+        accept :: (b: &Literal, visitor: $T, _: $R) -> R where Expr.Visitor(T, R) {
+            return visitor->visitLiteralExpr(b);
+        }
+    }
+}
