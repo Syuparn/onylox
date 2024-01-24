@@ -19,6 +19,7 @@ Expr :: union {
     }
 }
 
+// NOTE: Expr should be a pointer, otherwise the struct initialization fails due to circular reference
 BinaryExpr :: struct {
     left: &Expr;
     operator: Token;

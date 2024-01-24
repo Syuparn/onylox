@@ -1,6 +1,7 @@
 #load "./expr"
 #load "./object"
 
+use core
 use core { printf, tprintf }
 use core.string
 
@@ -39,7 +40,9 @@ ASTPrinter :: struct {
     }
 
     parenthesize :: (p: ASTPrinter, name: str, exprs: ..&Expr) -> LoxObject {
-        buffer := string.buffer_make("", "(");
+        // TODO: replace with initialize function
+        buffer_memory := "                                                     ";
+        buffer := string.buffer_make(buffer_memory, "(");
         string.buffer_append(&buffer, name);
         for expr: exprs {
             string.buffer_append(&buffer, " ");
