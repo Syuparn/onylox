@@ -27,6 +27,12 @@ test_ast_printer :: () => {
     expr3 := Expr.{Literal=literal3};
     group3 := GroupExpr.{expression=&expr3};
 
+    tokenLiteral4 := TokenLiteral.{Number=123};
+    literal4 := LiteralExpr.{value=tokenLiteral4};
+    expr4 := Expr.{Literal=literal4};
+    token4 := Token.{type=TokenType.PLUS, lexeme="-", literal=TokenLiteral.{Null=.{}}, line=1};
+    unary4 := UnaryExpr.{operator=token4, right=&expr4};
+
     TestCase :: struct {
         expr: Expr;
         expected: str;
@@ -47,6 +53,10 @@ test_ast_printer :: () => {
         .{
             expr=Expr.{Group=group3},
             expected="(group \"foo\")",
+        },
+        .{
+            expr=Expr.{Unary=unary4},
+            expected="(- 123.0000)",
         },
     ];
 

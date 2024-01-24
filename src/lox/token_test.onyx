@@ -12,6 +12,9 @@ test_token_to_string :: () => {
     tests := TestCase.[
         .{token=Token.{type=TokenType.AND, lexeme="&", literal=TokenLiteral.{Null=.{}}, line=1}, expected="AND & Null"},
         .{token=Token.{type=TokenType.STRING, lexeme="\"foo\"", literal=TokenLiteral.{String="foo"}, line=1}, expected="STRING \"foo\" String(\"foo\")"},
+        .{token=Token.{type=TokenType.NUMBER, lexeme="123", literal=TokenLiteral.{Number=123}, line=1}, expected="NUMBER 123 Number(123.0000)"},
+        .{token=Token.{type=TokenType.TRUE, lexeme="true", literal=TokenLiteral.{Bool=true}, line=1}, expected="TRUE true Bool(true)"},
+        .{token=Token.{type=TokenType.NIL, lexeme="nil", literal=TokenLiteral.{Null=.{}}, line=1}, expected="NIL nil Null"},
     ];
 
     for tt: tests {

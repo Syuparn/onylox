@@ -13,6 +13,7 @@ Token :: struct {
 TokenLiteral :: union {
     String: str;
     Number: f64;
+    Bool: bool;
     Null: void;
 }
 
@@ -32,6 +33,16 @@ TokenLiteral :: union {
             switch l2 {
                 case n2: .Number {
                     return n1 == n2;
+                }
+                case #default {
+                    return false;
+                }
+            }
+        }
+        case b1: .Bool {
+            switch l2 {
+                case b2: .Bool {
+                    return b1 == b2;
                 }
                 case #default {
                     return false;

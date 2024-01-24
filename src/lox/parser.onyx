@@ -1,0 +1,148 @@
+#load "./expr"
+#load "./object"
+#load "./token"
+#load "./token_type"
+
+use core
+use core { printf, tprintf }
+use core.string
+
+Parser :: struct {
+    tokens: []Token;
+    current: u32 = 0;
+
+    _expression :: (p: &Parser) -> Expr {
+        return p->_equality();
+    }
+
+    _equality :: (p: &Parser) -> Expr {
+        expr := p->_comparison();
+        while p->_match(TokenType.BANG_EQUAL, TokenType.EQUAL_EQUAL) {
+            operator := p->_previous();
+            right := p->_comparison();
+
+            binary := BinaryExpr.{left=&expr, operator=operator, right=&right};
+            expr = Expr.{Binary=binary};
+        }
+
+        return expr;
+    }
+
+    _comparison :: (p: &Parser) -> Expr {
+        expr := p->_term();
+        while p->_match(TokenType.GREATER, TokenType.GREATER_EQUAL, TokenType.LESS, TokenType.LESS_EQUAL) {
+            operator := p->_previous();
+            right := p->_term();
+            binary := BinaryExpr.{left=&expr, operator=operator, right=&right};
+            expr = Expr.{Binary=binary};
+        }
+        return expr;
+    }
+
+    _term :: (p: &Parser) -> Expr {
+        expr := p->_factor();
+        while p->_match(TokenType.MINUS, TokenType.PLUS) {
+            operator := p->_previous();
+            right := p->_factor();
+            binary := BinaryExpr.{left=&expr, operator=operator, right=&right};
+            expr = Expr.{Binary=binary};
+        }
+        return expr;
+    }
+
+    _factor :: (p: &Parser) -> Expr {
+        expr := p->_unary();
+        while p->_match(TokenType.SLASH, TokenType.STAR) {
+            operator := p->_previous();
+            right := p->_unary();
+            binary := BinaryExpr.{left=&expr, operator=operator, right=&right};
+            expr = Expr.{Binary=binary};
+        }
+        return expr;
+    }
+
+    _unary :: (p: &Parser) -> Expr {
+        while p->_match(TokenType.BANG, TokenType.MINUS) {
+            operator := p->_previous();
+            right := p->_unary();
+            unary := UnaryExpr.{operator=operator, right=&right};
+            return Expr.{Unary=unary};
+        }
+        return p->_primary();
+    }
+
+    _primary :: (p: &Parser) -> Expr {
+        if p->_match(TokenType.FALSE) {
+            tokenLiteral := TokenLiteral.{Bool=false};
+            literal := LiteralExpr.{value=tokenLiteral};
+            return Expr.{Literal=literal};
+        }
+
+        if p->_match(TokenType.TRUE) {
+            tokenLiteral := TokenLiteral.{Bool=true};
+            literal := LiteralExpr.{value=tokenLiteral};
+            return Expr.{Literal=literal};
+        }
+
+        if p->_match(TokenType.NIL) {
+            tokenLiteral := TokenLiteral.{Null=.{}};
+            literal := LiteralExpr.{value=tokenLiteral};
+            return Expr.{Literal=literal};
+        }
+
+        if p->_match(TokenType.NUMBER, TokenType.STRING) {
+            tokenLiteral := p->_previous().literal;
+            literal := LiteralExpr.{value=tokenLiteral};
+            return Expr.{Literal=literal};
+        }
+
+        if p->_match(TokenType.LEFT_PAREN) {
+            expr := p->_expression();
+            p->_consume(TokenType.RIGHT_PAREN, "Expect ') after expression.");
+            group := GroupExpr.{expression=&expr};
+            return Expr.{Group=group};
+        }
+    }
+
+    _consume :: (p: &Parser, type: TokenType, message: str) -> Token {
+        if p->_check(type) {
+            return p->_advance();
+        }
+    }
+
+    _match :: (p: &Parser, types: ..TokenType) -> bool {
+        for type: types {
+            if p->_check(type) {
+                p->_advance();
+                return true;
+            }
+        }
+        return false;
+    }
+
+    _check :: (p: &Parser, type: TokenType) -> bool {
+        if p->_is_at_end() {
+            return false;
+        }
+        return p->_peek().type == type;
+    }
+
+    _advance :: (p: &Parser) -> Token {
+        if !p->_is_at_end() {
+            p.current += 1;
+        }
+        return p->_previous();
+    }
+
+    _is_at_end :: (p: &Parser) -> bool {
+        return p->_peek().type == TokenType.EOF;
+    }
+
+    _peek :: (p: &Parser) -> Token {
+        return p.tokens[p.current];
+    }
+
+    _previous :: (p: &Parser) -> Token {
+        return p.tokens[p.current-1];
+    }
+}

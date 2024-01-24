@@ -17,6 +17,10 @@ ASTPrinter :: struct {
         return p->parenthesize(expr.operator.lexeme, expr.left, expr.right);
     }
 
+    visit_unary_expr :: (p: ASTPrinter, expr: UnaryExpr) -> LoxObject {
+        return p->parenthesize(expr.operator.lexeme, expr.right);
+    }
+
     visit_literal_expr :: (p: ASTPrinter, expr: LiteralExpr) -> LoxObject {
         s := p->_visit_literal_expr(expr);
         return LoxObject.{String=s};
