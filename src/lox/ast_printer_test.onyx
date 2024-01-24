@@ -6,20 +6,25 @@
 use core { printf, tprintf }
 
 test_ast_printer :: () => {
+    // TODO: initilize union expr directly once it can infer
+    tokenLiteral0 := TokenLiteral.{Number=123};
+    literal0 := LiteralExpr.{value=tokenLiteral0};
+
     TestCase :: struct {
-        expr: ^Expr;
+        expr: Expr;
         expected: str;
     }
     tests := TestCase.[
         .{
-            expr=&Expr.Literal.{value=TokenLiteral.{Number=123}},
-            expected="123",
+            expr=Expr.{Literal=literal0},
+            expected="123.0000",
         },
     ];
 
     for tt: tests {
         printer := ASTPrinter.{};
-        actual := printer->print(tt.expr);
+        obj := printer->print(tt.expr);
+        actual := obj.String->unwrap();
         assert(actual == tt.expected, tprintf("\"{}\" != \"{}\"", actual, tt.expected));
     }
 }

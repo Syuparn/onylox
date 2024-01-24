@@ -1,0 +1,3 @@
+LoxObject :: union {
+    String: str;
+}

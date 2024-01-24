@@ -1,4 +1,5 @@
 #load "./expr"
+#load "./object"
 
 use core { printf, tprintf }
 use core.string
@@ -7,15 +8,20 @@ ASTPrinter :: struct {
     // HACK: receiver must have non-void fields, otherwise the error `Function parameters cannot have 'void' as their type.` is raised
     _dummy: bool;
 
-    print :: (p: ASTPrinter, expr: ^Expr) -> str {
-        return expr->accept(p, "");
+    print :: (p: ASTPrinter, expr: Expr) -> LoxObject {
+        return expr->accept(p);
     }
 
-    visitBinaryExpr :: (p: ASTPrinter, expr: Expr.Binary) -> str {
+    visitBinaryExpr :: (p: ASTPrinter, expr: BinaryExpr) -> LoxObject {
         return p->parenthesize(expr.operator.lexeme, expr.left, expr.right);
     }
 
-    visitLiteralExpr :: (p: ASTPrinter, expr: Expr.Literal) -> str {
+    visitLiteralExpr :: (p: ASTPrinter, expr: LiteralExpr) -> LoxObject {
+        s := p->_visitLiteralExpr(expr);
+        return LoxObject.{String=s};
+    }
+
+    _visitLiteralExpr :: (p: ASTPrinter, expr: LiteralExpr) -> str {
         switch expr.value {
             case .Null {
                 return "nil";
@@ -32,15 +38,19 @@ ASTPrinter :: struct {
         }
     }
 
-    parenthesize :: (p: ASTPrinter, name: str, exprs: ..Expr) -> str {
+    parenthesize :: (p: ASTPrinter, name: str, exprs: ..&Expr) -> LoxObject {
         buffer := string.buffer_make("", "(");
         string.buffer_append(&buffer, name);
         for expr: exprs {
             string.buffer_append(&buffer, " ");
-            string.buffer_append(&buffer, expr->accept(p, ""));
+
+            obj := (*expr)->accept(p);
+            s := obj.String->unwrap();
+            string.buffer_append(&buffer, s);
         }
         string.buffer_append(&buffer, ")");
 
-        return string.buffer_to_str(&buffer);
+        s := string.buffer_to_str(&buffer);
+        return LoxObject.{String=s};
     }
 }
