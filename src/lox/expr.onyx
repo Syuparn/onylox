@@ -6,6 +6,7 @@ use core.slice
 Expr :: union {
     Binary: BinaryExpr;
     Literal: LiteralExpr;
+    Group: GroupExpr;
 
     accept :: (expr: Expr, visitor: $T) -> LoxObject where Visitor(T) {
         switch expr {
@@ -14,6 +15,9 @@ Expr :: union {
             }
             case e: .Literal {
                 return visitor->visitLiteralExpr(e);
+            }
+            case e: .Group {
+                return visitor->visitGroupExpr(e);
             }
         }
     }
@@ -30,7 +34,12 @@ LiteralExpr :: struct {
     value: TokenLiteral;
 }
 
+GroupExpr :: struct {
+    expression: &Expr;
+}
+
 Visitor :: interface (t: $T) {
     { t->visitBinaryExpr(BinaryExpr.{}) } -> LoxObject;
     { t->visitLiteralExpr(LiteralExpr.{}) } -> LoxObject;
+    { t->visitGroupExpr(GroupExpr.{}) } -> LoxObject;
 }

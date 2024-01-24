@@ -22,6 +22,10 @@ ASTPrinter :: struct {
         return LoxObject.{String=s};
     }
 
+    visitGroupExpr :: (p: ASTPrinter, expr: GroupExpr) -> LoxObject {
+        return p->parenthesize("group", expr.expression);
+    }
+
     _visitLiteralExpr :: (p: ASTPrinter, expr: LiteralExpr) -> str {
         switch expr.value {
             case .Null {
