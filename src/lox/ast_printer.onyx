@@ -13,20 +13,20 @@ ASTPrinter :: struct {
         return expr->accept(p);
     }
 
-    visitBinaryExpr :: (p: ASTPrinter, expr: BinaryExpr) -> LoxObject {
+    visit_binary_expr :: (p: ASTPrinter, expr: BinaryExpr) -> LoxObject {
         return p->parenthesize(expr.operator.lexeme, expr.left, expr.right);
     }
 
-    visitLiteralExpr :: (p: ASTPrinter, expr: LiteralExpr) -> LoxObject {
-        s := p->_visitLiteralExpr(expr);
+    visit_literal_expr :: (p: ASTPrinter, expr: LiteralExpr) -> LoxObject {
+        s := p->_visit_literal_expr(expr);
         return LoxObject.{String=s};
     }
 
-    visitGroupExpr :: (p: ASTPrinter, expr: GroupExpr) -> LoxObject {
+    visit_group_expr :: (p: ASTPrinter, expr: GroupExpr) -> LoxObject {
         return p->parenthesize("group", expr.expression);
     }
 
-    _visitLiteralExpr :: (p: ASTPrinter, expr: LiteralExpr) -> str {
+    _visit_literal_expr :: (p: ASTPrinter, expr: LiteralExpr) -> str {
         switch expr.value {
             case .Null {
                 return "nil";

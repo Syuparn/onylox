@@ -11,13 +11,13 @@ Expr :: union {
     accept :: (expr: Expr, visitor: $T) -> LoxObject where Visitor(T) {
         switch expr {
             case e: .Binary {
-                return visitor->visitBinaryExpr(e);
+                return visitor->visit_binary_expr(e);
             }
             case e: .Literal {
-                return visitor->visitLiteralExpr(e);
+                return visitor->visit_literal_expr(e);
             }
             case e: .Group {
-                return visitor->visitGroupExpr(e);
+                return visitor->visit_group_expr(e);
             }
         }
     }
@@ -39,7 +39,7 @@ GroupExpr :: struct {
 }
 
 Visitor :: interface (t: $T) {
-    { t->visitBinaryExpr(BinaryExpr.{}) } -> LoxObject;
-    { t->visitLiteralExpr(LiteralExpr.{}) } -> LoxObject;
-    { t->visitGroupExpr(GroupExpr.{}) } -> LoxObject;
+    { t->visit_binary_expr(BinaryExpr.{}) } -> LoxObject;
+    { t->visit_literal_expr(LiteralExpr.{}) } -> LoxObject;
+    { t->visit_group_expr(GroupExpr.{}) } -> LoxObject;
 }
