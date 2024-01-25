@@ -1,4 +1,4 @@
-use core { __flush_stdio, printf }
+use core { __flush_stdio, printf, tprintf }
 use core.io
 use core.os
 use core.string
@@ -72,8 +72,17 @@ Lox :: struct {
         }
     }
 
-    error :: (line: u32, message: str) {
-        Lox._report(line, "", message);
+    error :: #match {
+        (line: u32, message: str) {
+            Lox._report(line, "", message);
+        },
+        (token: Token, message: str) {
+            if token.type == TokenType.EOF {
+                Lox._report(token.line, "at end", message);
+            } else {
+                Lox._report(token.line, tprintf("at '{}'", token.lexeme), message);
+            }
+        }
     }
 
     _report :: (line: u32, where_: str, message: str) {

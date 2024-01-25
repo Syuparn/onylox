@@ -1,4 +1,5 @@
 #load "./expr"
+#load "./lox"
 #load "./object"
 #load "./token"
 #load "./token_type"
@@ -11,15 +12,15 @@ Parser :: struct {
     tokens: []Token;
     current: u32 = 0;
 
-    _expression :: (p: &Parser) -> Expr {
-        return p->_equality();
+    _expression :: (p: &Parser) -> ? Expr {
+        return p->_equality()?;
     }
 
-    _equality :: (p: &Parser) -> Expr {
-        expr := p->_comparison();
+    _equality :: (p: &Parser) -> ? Expr {
+        expr := p->_comparison()?;
         while p->_match(TokenType.BANG_EQUAL, TokenType.EQUAL_EQUAL) {
             operator := p->_previous();
-            right := p->_comparison();
+            right := p->_comparison()?;
 
             binary := BinaryExpr.{left=&expr, operator=operator, right=&right};
             expr = Expr.{Binary=binary};
@@ -28,50 +29,50 @@ Parser :: struct {
         return expr;
     }
 
-    _comparison :: (p: &Parser) -> Expr {
+    _comparison :: (p: &Parser) -> ? Expr {
         expr := p->_term();
         while p->_match(TokenType.GREATER, TokenType.GREATER_EQUAL, TokenType.LESS, TokenType.LESS_EQUAL) {
             operator := p->_previous();
-            right := p->_term();
+            right := p->_term()?;
             binary := BinaryExpr.{left=&expr, operator=operator, right=&right};
             expr = Expr.{Binary=binary};
         }
         return expr;
     }
 
-    _term :: (p: &Parser) -> Expr {
+    _term :: (p: &Parser) -> ? Expr {
         expr := p->_factor();
         while p->_match(TokenType.MINUS, TokenType.PLUS) {
             operator := p->_previous();
-            right := p->_factor();
+            right := p->_factor()?;
             binary := BinaryExpr.{left=&expr, operator=operator, right=&right};
             expr = Expr.{Binary=binary};
         }
         return expr;
     }
 
-    _factor :: (p: &Parser) -> Expr {
+    _factor :: (p: &Parser) -> ? Expr {
         expr := p->_unary();
         while p->_match(TokenType.SLASH, TokenType.STAR) {
             operator := p->_previous();
-            right := p->_unary();
+            right := p->_unary()?;
             binary := BinaryExpr.{left=&expr, operator=operator, right=&right};
             expr = Expr.{Binary=binary};
         }
         return expr;
     }
 
-    _unary :: (p: &Parser) -> Expr {
+    _unary :: (p: &Parser) -> ? Expr {
         while p->_match(TokenType.BANG, TokenType.MINUS) {
             operator := p->_previous();
-            right := p->_unary();
+            right := p->_unary()?;
             unary := UnaryExpr.{operator=operator, right=&right};
             return Expr.{Unary=unary};
         }
-        return p->_primary();
+        return p->_primary()?;
     }
 
-    _primary :: (p: &Parser) -> Expr {
+    _primary :: (p: &Parser) -> ? Expr {
         if p->_match(TokenType.FALSE) {
             tokenLiteral := TokenLiteral.{Bool=false};
             literal := LiteralExpr.{value=tokenLiteral};
@@ -98,15 +99,67 @@ Parser :: struct {
 
         if p->_match(TokenType.LEFT_PAREN) {
             expr := p->_expression();
-            p->_consume(TokenType.RIGHT_PAREN, "Expect ') after expression.");
+
+            // NOTE: expr is not used but errors should be checked
+            p->_consume(TokenType.RIGHT_PAREN, "Expect ') after expression.")?;
+
             group := GroupExpr.{expression=&expr};
             return Expr.{Group=group};
         }
+
+        p->_error(p->_peek(), "Expect expression.");
+        return .{}; // None
     }
 
-    _consume :: (p: &Parser, type: TokenType, message: str) -> Token {
+    _consume :: (p: &Parser, type: TokenType, message: str) -> ? Token {
         if p->_check(type) {
             return p->_advance();
+        }
+
+        p->_error(p->_peek(), message);
+        return .{}; // None
+    }
+
+    _error :: (p: &Parser, token: Token, message: str) => {
+        // show error message
+        Lox.error(token, message);
+    }
+
+    _synchronize :: (p: &Parser) {
+        p->_advance();
+        while !p->_is_at_end() {
+            if p->_previous().type == TokenType.SEMICOLON {
+                return;
+            }
+
+            switch p->_peek().type {
+                case TokenType.CLASS {
+                    return;
+                }
+                case TokenType.FOR {
+                    return;
+                }
+                case TokenType.FUN {
+                    return;
+                }
+                case TokenType.IF {
+                    return;
+                }
+                case TokenType.PRINT {
+                    return;
+                }
+                case TokenType.RETURN {
+                    return;
+                }
+                case TokenType.VAR {
+                    return;
+                }
+                case TokenType.WHILE {
+                    return;
+                }
+            }
+
+            p->_advance();
         }
     }
 
