@@ -21,43 +21,38 @@ Parser :: struct {
         while p->_match(TokenType.BANG_EQUAL, TokenType.EQUAL_EQUAL) {
             operator := p->_previous();
             right := p->_comparison()?;
-
-            binary := BinaryExpr.{left=&expr, operator=operator, right=&right};
-            expr = Expr.{Binary=binary};
+            expr = Expr.{Binary=BinaryExpr.{left=&expr, operator=operator, right=&right}};
         }
 
         return expr;
     }
 
     _comparison :: (p: &Parser) -> ? Expr {
-        expr := p->_term();
+        expr := p->_term()?;
         while p->_match(TokenType.GREATER, TokenType.GREATER_EQUAL, TokenType.LESS, TokenType.LESS_EQUAL) {
             operator := p->_previous();
             right := p->_term()?;
-            binary := BinaryExpr.{left=&expr, operator=operator, right=&right};
-            expr = Expr.{Binary=binary};
+            expr = Expr.{Binary=BinaryExpr.{left=&expr, operator=operator, right=&right}};
         }
         return expr;
     }
 
     _term :: (p: &Parser) -> ? Expr {
-        expr := p->_factor();
+        expr := p->_factor()?;
         while p->_match(TokenType.MINUS, TokenType.PLUS) {
             operator := p->_previous();
             right := p->_factor()?;
-            binary := BinaryExpr.{left=&expr, operator=operator, right=&right};
-            expr = Expr.{Binary=binary};
+            expr = Expr.{Binary=BinaryExpr.{left=&expr, operator=operator, right=&right}};
         }
         return expr;
     }
 
     _factor :: (p: &Parser) -> ? Expr {
-        expr := p->_unary();
+        expr := p->_unary()?;
         while p->_match(TokenType.SLASH, TokenType.STAR) {
             operator := p->_previous();
             right := p->_unary()?;
-            binary := BinaryExpr.{left=&expr, operator=operator, right=&right};
-            expr = Expr.{Binary=binary};
+            expr = Expr.{Binary=BinaryExpr.{left=&expr, operator=operator, right=&right}};
         }
         return expr;
     }
@@ -66,45 +61,34 @@ Parser :: struct {
         while p->_match(TokenType.BANG, TokenType.MINUS) {
             operator := p->_previous();
             right := p->_unary()?;
-            unary := UnaryExpr.{operator=operator, right=&right};
-            return Expr.{Unary=unary};
+            return Expr.{Unary=UnaryExpr.{operator=operator, right=&right}};
         }
         return p->_primary()?;
     }
 
     _primary :: (p: &Parser) -> ? Expr {
         if p->_match(TokenType.FALSE) {
-            tokenLiteral := TokenLiteral.{Bool=false};
-            literal := LiteralExpr.{value=tokenLiteral};
-            return Expr.{Literal=literal};
+            return Expr.{Literal=LiteralExpr.{value=TokenLiteral.{Bool=false}}};
         }
 
         if p->_match(TokenType.TRUE) {
-            tokenLiteral := TokenLiteral.{Bool=true};
-            literal := LiteralExpr.{value=tokenLiteral};
-            return Expr.{Literal=literal};
+            return Expr.{Literal=LiteralExpr.{value=TokenLiteral.{Bool=true}}};
         }
 
         if p->_match(TokenType.NIL) {
-            tokenLiteral := TokenLiteral.{Null=.{}};
-            literal := LiteralExpr.{value=tokenLiteral};
-            return Expr.{Literal=literal};
+            return Expr.{Literal=LiteralExpr.{value=TokenLiteral.{Null=.{}}}};
         }
 
         if p->_match(TokenType.NUMBER, TokenType.STRING) {
-            tokenLiteral := p->_previous().literal;
-            literal := LiteralExpr.{value=tokenLiteral};
-            return Expr.{Literal=literal};
+            return Expr.{Literal=LiteralExpr.{value=p->_previous().literal}};
         }
 
         if p->_match(TokenType.LEFT_PAREN) {
-            expr := p->_expression();
+            expr := p->_expression()?;
 
             // NOTE: expr is not used but errors should be checked
             p->_consume(TokenType.RIGHT_PAREN, "Expect ') after expression.")?;
-
-            group := GroupExpr.{expression=&expr};
-            return Expr.{Group=group};
+            return Expr.{Group=GroupExpr.{expression=&expr}};
         }
 
         p->_error(p->_peek(), "Expect expression.");

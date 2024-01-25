@@ -6,56 +6,48 @@
 use core { printf, tprintf }
 
 test_ast_printer :: () => {
-    // TODO: initilize union expr directly once it can infer
-    tokenLiteral0 := TokenLiteral.{Number=123};
-    literal0 := LiteralExpr.{value=tokenLiteral0};
-
-    tokenLiteral1 := TokenLiteral.{String="foo"};
-    literal1 := LiteralExpr.{value=tokenLiteral1};
-
-    tokenLiteral20 := TokenLiteral.{Number=123};
-    literal20 := LiteralExpr.{value=tokenLiteral0};
-    expr20 := Expr.{Literal=literal20};
-    tokenLiteral21 := TokenLiteral.{Number=456};
-    literal21 := LiteralExpr.{value=tokenLiteral0};
-    expr21 := Expr.{Literal=literal21};
-    token2 := Token.{type=TokenType.PLUS, lexeme="+", literal=TokenLiteral.{Null=.{}}, line=1};
-    binary2 := BinaryExpr.{left=&expr20, operator=token2, right=&expr21};
-
-    tokenLiteral3 := TokenLiteral.{String="foo"};
-    literal3 := LiteralExpr.{value=tokenLiteral3};
-    expr3 := Expr.{Literal=literal3};
-    group3 := GroupExpr.{expression=&expr3};
-
-    tokenLiteral4 := TokenLiteral.{Number=123};
-    literal4 := LiteralExpr.{value=tokenLiteral4};
-    expr4 := Expr.{Literal=literal4};
-    token4 := Token.{type=TokenType.PLUS, lexeme="-", literal=TokenLiteral.{Null=.{}}, line=1};
-    unary4 := UnaryExpr.{operator=token4, right=&expr4};
-
     TestCase :: struct {
         expr: Expr;
         expected: str;
     }
     tests := TestCase.[
         .{
-            expr=Expr.{Literal=literal0},
+            expr=Expr.{
+                Literal=LiteralExpr.{value=TokenLiteral.{Number=123}},
+            },
             expected="123.0000",
         },
         .{
-            expr=Expr.{Literal=literal1},
+            expr=Expr.{
+                Literal=LiteralExpr.{value=TokenLiteral.{String="foo"}},
+            },
             expected="\"foo\"",
         },
         .{
-            expr=Expr.{Binary=binary2},
-            expected="(+ 123.0000 123.0000)",
+            expr=Expr.{
+                Binary=BinaryExpr.{
+                    left=&Expr.{Literal=LiteralExpr.{value=TokenLiteral.{Number=123}}},
+                    operator=Token.{type=TokenType.PLUS, lexeme="+", literal=TokenLiteral.{Null=.{}}, line=1},
+                    right=&Expr.{Literal=LiteralExpr.{value=TokenLiteral.{Number=456}}},
+                },
+            },
+            expected="(+ 123.0000 456.0000)",
         },
         .{
-            expr=Expr.{Group=group3},
+            expr=Expr.{
+                Group=GroupExpr.{
+                    expression=&Expr.{Literal=LiteralExpr.{value=TokenLiteral.{String="foo"}}},
+                },
+            },
             expected="(group \"foo\")",
         },
         .{
-            expr=Expr.{Unary=unary4},
+            expr=Expr.{
+                Unary=UnaryExpr.{
+                    operator=Token.{type=TokenType.PLUS, lexeme="-", literal=TokenLiteral.{Null=.{}}, line=1},
+                    right=&Expr.{Literal=LiteralExpr.{value=TokenLiteral.{Number=123}}},
+                },
+            },
             expected="(- 123.0000)",
         },
     ];

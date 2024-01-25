@@ -61,7 +61,6 @@ ASTPrinter :: struct {
         }
         string.buffer_append(&buffer, ")");
 
-        s := string.buffer_to_str(&buffer);
-        return LoxObject.{String=s};
+        return LoxObject.{String=string.buffer_to_str(&buffer)};
     }
 }
