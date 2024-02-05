@@ -4,7 +4,9 @@ use core.os
 use core.string
 use runtime.platform
 
+#load "./ast_printer"
 #load "./options"
+#load "./parser"
 #load "./scanner"
 
 had_error := false;
@@ -66,9 +68,16 @@ Lox :: struct {
         scanner := &Scanner.{source=source};
         tokens := scanner->scan_tokens();
 
-        // TODO: parse and eval
-        for token: tokens->as_iter() {
-            printf("{}\n", token);
+        parser := &Parser.{tokens=tokens};
+        ast_printer := ASTPrinter.{};
+
+        Optional.try() {
+            expr := parser->parse()?;
+            printf("{}\n", ast_printer->print(expr));
+        };
+
+        if had_error {
+            return;
         }
     }
 
@@ -86,7 +95,7 @@ Lox :: struct {
     }
 
     _report :: (line: u32, where_: str, message: str) {
-        printf("[line {}] Error{}: {}\n", line, where_, message);
+        printf("[line {}] Error {}: {}\n", line, where_, message);
         had_error = true;
     }
 }

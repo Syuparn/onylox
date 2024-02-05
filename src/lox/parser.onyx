@@ -6,11 +6,16 @@
 
 use core
 use core { printf, tprintf }
+use core.list
 use core.string
 
 Parser :: struct {
-    tokens: []Token;
+    tokens: list.List(Token);
     current: u32 = 0;
+
+    parse :: (p: &Parser) -> ? Expr {
+        return p->_expression();
+    }
 
     _expression :: (p: &Parser) -> ? Expr {
         return p->_equality()?;
@@ -176,10 +181,10 @@ Parser :: struct {
     }
 
     _peek :: (p: &Parser) -> Token {
-        return p.tokens[p.current];
+        return *list.at(&p.tokens, p.current);
     }
 
     _previous :: (p: &Parser) -> Token {
-        return p.tokens[p.current-1];
+        return *list.at(&p.tokens, p.current-1);
     }
 }

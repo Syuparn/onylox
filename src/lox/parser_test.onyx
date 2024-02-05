@@ -1,3 +1,52 @@
+#load "./ast_printer"
 #load "./parser"
 
-main :: () {}
+use core { tprintf }
+use core.iter
+use core.list
+
+_to_list :: (values: []$T) -> list.List(T) {
+    l := list.make(T);
+    for value: values {
+        l->push_end(value);
+    }
+    return l;
+}
+
+print_expr :: (expr: Expr) -> str {
+    printer := ASTPrinter.{};
+    obj := printer->print(expr);
+    return obj.String?;
+}
+
+test_parser_parse :: () => {
+    TestCase :: struct {
+        title: str;
+        tokens: list.List(Token);
+        expected: Expr;
+    }
+    tests := TestCase.[
+        .{
+            title="parse literal expr",
+            tokens=_to_list(Token.[
+                Token.{type=TokenType.NUMBER, lexeme="123", literal=TokenLiteral.{Number=123}},
+            ]),
+            expected=Expr.{Literal=LiteralExpr.{value=TokenLiteral.{Number=123}}},
+        },
+    ];
+
+    for tt: tests {
+        parser := Parser.{tokens=tt.tokens};
+        actual := parser->parse()->expect(tprintf("{}: expr must not be empty", tt.title));
+
+        // HACK: converted to string because == is not defined for Expr
+        assert(
+            print_expr(actual) == print_expr(tt.expected),
+            tprintf("{}: \"{}\" != \"{}\"", tt.title, print_expr(actual), print_expr(tt.expected)),
+        );
+    }
+}
+
+main :: () {
+    test_parser_parse();
+}
