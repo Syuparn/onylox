@@ -50,6 +50,26 @@ test_ast_printer :: () => {
             },
             expected="(- 123.0000)",
         },
+        // avoid null pointer dereference
+        .{
+            expr=Expr.{
+                Unary=UnaryExpr.{
+                    operator=Token.{type=TokenType.PLUS, lexeme="-", literal=TokenLiteral.{Null=.{}}, line=1},
+                    right=null,
+                },
+            },
+            expected="(- <null Expr (should be Onylox bug)>)",
+        },
+        .{
+            expr=Expr.{
+                Binary=BinaryExpr.{
+                    left=null,
+                    operator=Token.{type=TokenType.PLUS, lexeme="+", literal=TokenLiteral.{Null=.{}}, line=1},
+                    right=null,
+                },
+            },
+            expected="(+ <null Expr (should be Onylox bug)> <null Expr (should be Onylox bug)>)",
+        },
     ];
 
     for tt: tests {

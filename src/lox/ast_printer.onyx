@@ -49,15 +49,19 @@ ASTPrinter :: struct {
 
     parenthesize :: (p: ASTPrinter, name: str, exprs: ..&Expr) -> LoxObject {
         // TODO: replace with initialize function
-        buffer_memory := "                                                     ";
+        buffer_memory := "                                                                                          ";
         buffer := string.buffer_make(buffer_memory, "(");
         string.buffer_append(&buffer, name);
         for expr: exprs {
             string.buffer_append(&buffer, " ");
 
-            obj := (*expr)->accept(p);
-            s := obj.String->unwrap();
-            string.buffer_append(&buffer, s);
+            if expr == null {
+                string.buffer_append(&buffer, "<null Expr (should be Onylox bug)>");
+            } else {
+                obj := (*expr)->accept(p);
+                s := obj.String->unwrap();
+                string.buffer_append(&buffer, s);
+            }
         }
         string.buffer_append(&buffer, ")");
 

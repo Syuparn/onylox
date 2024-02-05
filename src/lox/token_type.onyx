@@ -1,4 +1,7 @@
 TokenType :: enum {
+    // defined to distinguish default value (must not be appeared)
+    NO_TOKEN;
+
     // 1-character tokens
     LEFT_PAREN; RIGHT_PAREN; LEFT_BRACE; RIGHT_BRACE;
     COMMA; DOT; MINUS; PLUS; SEMICOLON; SLASH; STAR;
