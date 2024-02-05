@@ -6,15 +6,23 @@
 
 use core
 use core { printf, tprintf }
+use core.alloc { heap_allocator }
+use core.alloc.arena
 use core.list
 use core.string
 
 Parser :: struct {
     tokens: list.List(Token);
     current: u32 = 0;
+    // HACK: alloc expr pointers for binary/unary exprs, otherwise they are deleted after return
+    pool: PoolAllocator = new_pool_allocator();
 
     parse :: (p: &Parser) -> ? Expr {
         return p->_expression();
+    }
+
+    free :: (p: &Parser) {
+        p.pool->free();
     }
 
     _expression :: (p: &Parser) -> ? Expr {
@@ -93,7 +101,9 @@ Parser :: struct {
 
             // NOTE: expr is not used but errors should be checked
             p->_consume(TokenType.RIGHT_PAREN, "Expect ') after expression.")?;
-            return Expr.{Group=GroupExpr.{expression=&expr}};
+
+            // HACK: alloc expr, otherwise it is deleted after return
+            return Expr.{Group=GroupExpr.{expression=p->_alloc_expr(expr)}};
         }
 
         p->_error(p->_peek(), "Expect expression.");
@@ -187,4 +197,24 @@ Parser :: struct {
     _previous :: (p: &Parser) -> Token {
         return *list.at(&p.tokens, p.current-1);
     }
+
+    _alloc_expr :: macro (p: &Parser, expr: Expr) -> &Expr {
+        return p.pool.allocator->move(expr);
+    }
 }
+
+new_pool_allocator :: () -> PoolAllocator {
+    a := arena.make(heap_allocator, 32 * 1024);
+    allocator := arena.make_allocator(&a);
+    return PoolAllocator.{allocator=allocator, arena=a};
+}
+
+PoolAllocator :: struct {
+    allocator: Allocator;
+    arena: arena.Arena;
+
+    free :: (pool: PoolAllocator) {
+        arena.free(&pool.arena);
+    }
+}
+

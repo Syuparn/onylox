@@ -1,7 +1,7 @@
 #load "./ast_printer"
 #load "./parser"
 
-use core { tprintf }
+use core { printf, tprintf }
 use core.iter
 use core.list
 
@@ -27,16 +27,62 @@ test_parser_parse :: () => {
     }
     tests := TestCase.[
         .{
-            title="parse literal expr",
+            title="parse number literal",
             tokens=_to_list(Token.[
                 Token.{type=TokenType.NUMBER, lexeme="123", literal=TokenLiteral.{Number=123}},
+                Token.{type=TokenType.EOF, lexeme=""},
             ]),
             expected=Expr.{Literal=LiteralExpr.{value=TokenLiteral.{Number=123}}},
+        },
+        .{
+            title="parse string literal",
+            tokens=_to_list(Token.[
+                Token.{type=TokenType.STRING, lexeme="\"foo\"", literal=TokenLiteral.{String="foo"}},
+                Token.{type=TokenType.EOF, lexeme=""},
+            ]),
+            expected=Expr.{Literal=LiteralExpr.{value=TokenLiteral.{String="foo"}}},
+        },
+        .{
+            title="parse true literal",
+            tokens=_to_list(Token.[
+                Token.{type=TokenType.TRUE, lexeme="true", literal=TokenLiteral.{Bool=true}},
+                Token.{type=TokenType.EOF, lexeme=""},
+            ]),
+            expected=Expr.{Literal=LiteralExpr.{value=TokenLiteral.{Bool=true}}},
+        },
+        .{
+            title="parse false literal",
+            tokens=_to_list(Token.[
+                Token.{type=TokenType.FALSE, lexeme="false", literal=TokenLiteral.{Bool=false}},
+                Token.{type=TokenType.EOF, lexeme=""},
+            ]),
+            expected=Expr.{Literal=LiteralExpr.{value=TokenLiteral.{Bool=false}}},
+        },
+        .{
+            title="parse nil literal",
+            tokens=_to_list(Token.[
+                Token.{type=TokenType.NIL, lexeme="nil", literal=TokenLiteral.{Null=.{}}},
+                Token.{type=TokenType.EOF, lexeme=""},
+            ]),
+            expected=Expr.{Literal=LiteralExpr.{value=TokenLiteral.{Null=.{}}}},
+        },
+        .{
+            title="parse group",
+            tokens=_to_list(Token.[
+                Token.{type=TokenType.LEFT_PAREN, lexeme="("},
+                Token.{type=TokenType.NIL, lexeme="nil", literal=TokenLiteral.{Null=.{}}},
+                Token.{type=TokenType.RIGHT_PAREN, lexeme=")"},
+                Token.{type=TokenType.EOF, lexeme=""},
+            ]),
+            expected=Expr.{Group=GroupExpr.{
+                expression=&Expr.{Literal=LiteralExpr.{value=TokenLiteral.{Null=.{}}}},
+            }},
         },
     ];
 
     for tt: tests {
         parser := Parser.{tokens=tt.tokens};
+
         actual := parser->parse()->expect(tprintf("{}: expr must not be empty", tt.title));
 
         // HACK: converted to string because == is not defined for Expr
@@ -44,8 +90,13 @@ test_parser_parse :: () => {
             print_expr(actual) == print_expr(tt.expected),
             tprintf("{}: \"{}\" != \"{}\"", tt.title, print_expr(actual), print_expr(tt.expected)),
         );
+
+        parser->free();
     }
 }
+
+// TODO: test errors
+// no right paren
 
 main :: () {
     test_parser_parse();
