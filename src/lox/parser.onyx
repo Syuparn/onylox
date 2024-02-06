@@ -34,7 +34,9 @@ Parser :: struct {
         while p->_match(TokenType.BANG_EQUAL, TokenType.EQUAL_EQUAL) {
             operator := p->_previous();
             right := p->_comparison()?;
-            expr = Expr.{Binary=BinaryExpr.{left=&expr, operator=operator, right=&right}};
+            // HACK: alloc expr, otherwise it is deleted after return
+            expr_ptr := p->_alloc_expr(expr); // NOTE: move does not work with reassigning...
+            expr = Expr.{Binary=BinaryExpr.{left=expr_ptr, operator=operator, right=p->_alloc_expr(right)}};
         }
 
         return expr;
@@ -45,7 +47,9 @@ Parser :: struct {
         while p->_match(TokenType.GREATER, TokenType.GREATER_EQUAL, TokenType.LESS, TokenType.LESS_EQUAL) {
             operator := p->_previous();
             right := p->_term()?;
-            expr = Expr.{Binary=BinaryExpr.{left=&expr, operator=operator, right=&right}};
+            // HACK: alloc expr, otherwise it is deleted after return
+            expr_ptr := p->_alloc_expr(expr); // NOTE: move does not work with reassigning...
+            expr = Expr.{Binary=BinaryExpr.{left=expr_ptr, operator=operator, right=p->_alloc_expr(right)}};
         }
         return expr;
     }
@@ -55,7 +59,9 @@ Parser :: struct {
         while p->_match(TokenType.MINUS, TokenType.PLUS) {
             operator := p->_previous();
             right := p->_factor()?;
-            expr = Expr.{Binary=BinaryExpr.{left=&expr, operator=operator, right=&right}};
+            // HACK: alloc expr, otherwise it is deleted after return
+            expr_ptr := p->_alloc_expr(expr); // NOTE: move does not work with reassigning...
+            expr = Expr.{Binary=BinaryExpr.{left=expr_ptr, operator=operator, right=p->_alloc_expr(right)}};
         }
         return expr;
     }
@@ -65,7 +71,9 @@ Parser :: struct {
         while p->_match(TokenType.SLASH, TokenType.STAR) {
             operator := p->_previous();
             right := p->_unary()?;
-            expr = Expr.{Binary=BinaryExpr.{left=&expr, operator=operator, right=&right}};
+            // HACK: alloc expr, otherwise it is deleted after return
+            expr_ptr := p->_alloc_expr(expr); // NOTE: move does not work with reassigning...
+            expr = Expr.{Binary=BinaryExpr.{left=expr_ptr, operator=operator, right=p->_alloc_expr(right)}};
         }
         return expr;
     }
@@ -74,7 +82,8 @@ Parser :: struct {
         while p->_match(TokenType.BANG, TokenType.MINUS) {
             operator := p->_previous();
             right := p->_unary()?;
-            return Expr.{Unary=UnaryExpr.{operator=operator, right=&right}};
+            // HACK: alloc expr, otherwise it is deleted after return
+            return Expr.{Unary=UnaryExpr.{operator=operator, right=p->_alloc_expr(right)}};
         }
         return p->_primary()?;
     }
@@ -217,4 +226,3 @@ PoolAllocator :: struct {
         arena.free(&pool.arena);
     }
 }
-

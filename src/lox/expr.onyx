@@ -4,21 +4,21 @@ use core { printf }
 use core.slice
 
 Expr :: union {
+    Literal: LiteralExpr;
     Binary: BinaryExpr;
     Unary: UnaryExpr;
-    Literal: LiteralExpr;
     Group: GroupExpr;
 
     accept :: (expr: Expr, visitor: $T) -> LoxObject where Visitor(T) {
         switch expr {
+            case e: .Literal {
+                return visitor->visit_literal_expr(e);
+            }
             case e: .Binary {
                 return visitor->visit_binary_expr(e);
             }
             case e: .Unary {
                 return visitor->visit_unary_expr(e);
-            }
-            case e: .Literal {
-                return visitor->visit_literal_expr(e);
             }
             case e: .Group {
                 return visitor->visit_group_expr(e);
@@ -48,8 +48,8 @@ GroupExpr :: struct {
 }
 
 Visitor :: interface (t: $T) {
+    { t->visit_literal_expr(LiteralExpr.{}) } -> LoxObject;
     { t->visit_binary_expr(BinaryExpr.{}) } -> LoxObject;
     { t->visit_unary_expr(UnaryExpr.{}) } -> LoxObject;
-    { t->visit_literal_expr(LiteralExpr.{}) } -> LoxObject;
     { t->visit_group_expr(GroupExpr.{}) } -> LoxObject;
 }
