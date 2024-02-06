@@ -241,9 +241,56 @@ test_parser_parse :: () => {
     }
 }
 
-// TODO: test errors
-// no right paren
+
+test_parser_parse_error :: () => {
+    TestCase :: struct {
+        title: str;
+        tokens: list.List(Token);
+    }
+    tests := TestCase.[
+        .{
+            title="no right paren",
+            tokens=_to_list(Token.[
+                Token.{type=TokenType.LEFT_PAREN, lexeme="("},
+                Token.{type=TokenType.NUMBER, lexeme="1", literal=TokenLiteral.{Number=1}},
+                Token.{type=TokenType.EOF, lexeme=""},
+            ]),
+        },
+        .{
+            title="empty program",
+            tokens=_to_list(Token.[
+                Token.{type=TokenType.EOF, lexeme=""},
+            ]),
+        },
+        .{
+            title="unterminated binary expr",
+            tokens=_to_list(Token.[
+                Token.{type=TokenType.NUMBER, lexeme="1", literal=TokenLiteral.{Number=1}},
+                Token.{type=TokenType.PLUS, lexeme="+"},
+                Token.{type=TokenType.EOF, lexeme=""},
+            ]),
+        },
+    ];
+
+    for tt: tests {
+        parser := Parser.{tokens=tt.tokens};
+
+        actual := parser->parse();
+
+        switch actual {
+            case e: .Some {
+                assert(false, tprintf("{} must be None", print_expr(e)));
+            }
+            case #default ---
+        }
+
+        assert(had_error, "error must be raised");
+
+        parser->free();
+    }
+}
 
 main :: () {
     test_parser_parse();
+    test_parser_parse_error();
 }
