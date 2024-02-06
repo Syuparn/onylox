@@ -1,0 +1,54 @@
+#load "./expr"
+#load "./object"
+
+use core
+use core { printf }
+
+Interpreter :: struct {
+    // HACK: receiver must have non-void fields, otherwise the error `Function parameters cannot have 'void' as their type.` is raised
+    _dummy: bool;
+
+    evaluate :: (interpreter: Interpreter, expr: Expr) -> LoxObject {
+        return expr->accept(interpreter);
+    }
+
+    visit_literal_expr :: (interpreter: Interpreter, expr: LiteralExpr) -> LoxObject {
+        switch expr.value {
+            case s: .String {
+                return LoxObject.{String=s};
+            }
+            case b: .Bool {
+                return LoxObject.{Bool=b};
+            }
+            case n: .Number {
+                return LoxObject.{Number=n};
+            }
+            case .Null {
+                return LoxObject.{Null=.{}};
+            }
+        }
+    }
+
+    visit_group_expr :: (interpreter: Interpreter, expr: GroupExpr) -> LoxObject {
+        return interpreter->evaluate(*expr.expression);
+    }
+
+    visit_binary_expr :: (interpreter: Interpreter, expr: BinaryExpr) -> LoxObject {
+        // TODO: impl
+        return LoxObject.{Null=.{}};
+    }
+
+    visit_unary_expr :: (interpreter: Interpreter, expr: UnaryExpr) -> LoxObject {
+        right := interpreter->evaluate(*expr.right);
+
+        switch expr.operator.type {
+            case TokenType.MINUS {
+                // TODO: error handling
+                return LoxObject.{Number=-right.Number?};
+            }
+        }
+
+        // unreachable
+        return right;
+    }
+}

@@ -1,3 +1,54 @@
 LoxObject :: union {
     String: str;
+    Number: f64;
+    Bool: bool;
+    Null: void;
+}
+
+#operator == (l1, l2: LoxObject) -> bool {
+    switch l1 {
+        case s1: .String {
+            switch l2 {
+                case s2: .String {
+                    return s1 == s2;
+                }
+                case #default {
+                    return false;
+                }
+            }
+        }
+        case n1: .Number {
+            switch l2 {
+                case n2: .Number {
+                    return n1 == n2;
+                }
+                case #default {
+                    return false;
+                }
+            }
+        }
+        case b1: .Bool {
+            switch l2 {
+                case b2: .Bool {
+                    return b1 == b2;
+                }
+                case #default {
+                    return false;
+                }
+            }
+        }
+        case _n1: .Null {
+            switch l2 {
+                case _n2: .Null {
+                    return true;
+                }
+                case #default {
+                    return false;
+                }
+            }
+        }
+        case #default {
+            return false;
+        }
+    }
 }

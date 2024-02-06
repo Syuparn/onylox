@@ -1,0 +1,64 @@
+#load "./expr"
+#load "./interpreter"
+#load "./token"
+#load "./token_type"
+
+use core { tprintf }
+use core.iter
+
+test_token_to_string :: () => {
+    TestCase :: struct {
+        title: str;
+        expr: Expr;
+        expected: LoxObject;
+    }
+    tests := TestCase.[
+        .{
+            title="string literal",
+            expr=Expr.{Literal=LiteralExpr.{value=TokenLiteral.{String="foo"}}},
+            expected=LoxObject.{String="foo"},
+        },
+        .{
+            title="number literal",
+            expr=Expr.{Literal=LiteralExpr.{value=TokenLiteral.{Number=123}}},
+            expected=LoxObject.{Number=123},
+        },
+        .{
+            title="bool literal",
+            expr=Expr.{Literal=LiteralExpr.{value=TokenLiteral.{Bool=false}}},
+            expected=LoxObject.{Bool=false},
+        },
+        .{
+            title="null literal",
+            expr=Expr.{Literal=LiteralExpr.{value=TokenLiteral.{Null=.{}}}},
+            expected=LoxObject.{Null=.{}},
+        },
+        .{
+            title="group",
+            expr=Expr.{Group=GroupExpr.{
+                expression=&Expr.{Literal=LiteralExpr.{value=TokenLiteral.{Number=123}}},
+            }},
+            expected=LoxObject.{Number=123},
+        },
+        .{
+            title="unary minus",
+            expr=Expr.{Unary=UnaryExpr.{
+                operator=Token.{type=TokenType.MINUS, lexeme="-"},
+                right=&Expr.{Literal=LiteralExpr.{value=TokenLiteral.{Number=123}}},
+            }},
+            expected=LoxObject.{Number=-123},
+        },
+    ];
+
+    for tt: tests {
+        interpreter := Interpreter.{};
+        actual := interpreter->evaluate(tt.expr);
+
+        assert(actual == tt.expected, tprintf("{}: \"{}\" != \"{}\"", tt.title, actual, tt.expected));
+    }
+}
+
+
+main :: () {
+    test_token_to_string();
+}
