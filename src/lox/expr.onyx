@@ -1,3 +1,4 @@
+#load "./runtime_error"
 #load "./token"
 
 use core { printf, Result }
@@ -9,7 +10,7 @@ Expr :: union {
     Unary: UnaryExpr;
     Group: GroupExpr;
 
-    accept :: (expr: Expr, visitor: $T) -> Result(LoxObject, str) where Visitor(T) {
+    accept :: (expr: Expr, visitor: $T) -> Result(LoxObject, RuntimeError) where Visitor(T) {
         switch expr {
             case e: .Literal {
                 return visitor->visit_literal_expr(e);
@@ -48,8 +49,8 @@ GroupExpr :: struct {
 }
 
 Visitor :: interface (t: $T) {
-    { t->visit_literal_expr(LiteralExpr.{}) } -> Result(LoxObject, str);
-    { t->visit_binary_expr(BinaryExpr.{}) } -> Result(LoxObject, str);
-    { t->visit_unary_expr(UnaryExpr.{}) } -> Result(LoxObject, str);
-    { t->visit_group_expr(GroupExpr.{}) } -> Result(LoxObject, str);
+    { t->visit_literal_expr(LiteralExpr.{}) } -> Result(LoxObject, RuntimeError);
+    { t->visit_binary_expr(BinaryExpr.{}) } -> Result(LoxObject, RuntimeError);
+    { t->visit_unary_expr(UnaryExpr.{}) } -> Result(LoxObject, RuntimeError);
+    { t->visit_group_expr(GroupExpr.{}) } -> Result(LoxObject, RuntimeError);
 }

@@ -1,5 +1,6 @@
 #load "./expr"
 #load "./object"
+#load "./runtime_error"
 
 use core
 use core { printf, Result, tprintf }
@@ -9,24 +10,24 @@ ASTPrinter :: struct {
     // HACK: receiver must have non-void fields, otherwise the error `Function parameters cannot have 'void' as their type.` is raised
     _dummy: bool;
 
-    print :: (p: ASTPrinter, expr: Expr) -> Result(LoxObject, str) {
+    print :: (p: ASTPrinter, expr: Expr) -> Result(LoxObject, RuntimeError) {
         return expr->accept(p);
     }
 
-    visit_binary_expr :: (p: ASTPrinter, expr: BinaryExpr) -> Result(LoxObject, str) {
+    visit_binary_expr :: (p: ASTPrinter, expr: BinaryExpr) -> Result(LoxObject, RuntimeError) {
         return p->parenthesize(expr.operator.lexeme, expr.left, expr.right);
     }
 
-    visit_unary_expr :: (p: ASTPrinter, expr: UnaryExpr) -> Result(LoxObject, str) {
+    visit_unary_expr :: (p: ASTPrinter, expr: UnaryExpr) -> Result(LoxObject, RuntimeError) {
         return p->parenthesize(expr.operator.lexeme, expr.right);
     }
 
-    visit_literal_expr :: (p: ASTPrinter, expr: LiteralExpr) -> Result(LoxObject, str) {
+    visit_literal_expr :: (p: ASTPrinter, expr: LiteralExpr) -> Result(LoxObject, RuntimeError) {
         s := p->_visit_literal_expr(expr);
         return .{Ok=LoxObject.{String=s}};
     }
 
-    visit_group_expr :: (p: ASTPrinter, expr: GroupExpr) -> Result(LoxObject, str) {
+    visit_group_expr :: (p: ASTPrinter, expr: GroupExpr) -> Result(LoxObject, RuntimeError) {
         return p->parenthesize("group", expr.expression);
     }
 
@@ -47,7 +48,7 @@ ASTPrinter :: struct {
         }
     }
 
-    parenthesize :: (p: ASTPrinter, name: str, exprs: ..&Expr) -> Result(LoxObject, str) {
+    parenthesize :: (p: ASTPrinter, name: str, exprs: ..&Expr) -> Result(LoxObject, RuntimeError) {
         // TODO: replace with initialize function
         buffer_memory := "                                                                                          ";
         buffer := string.buffer_make(buffer_memory, "(");

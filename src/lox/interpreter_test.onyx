@@ -6,7 +6,7 @@
 use core { tprintf }
 use core.iter
 
-test_token_to_string :: () => {
+test_interpreter_evaluate :: () => {
     TestCase :: struct {
         title: str;
         expr: Expr;
@@ -261,7 +261,35 @@ test_token_to_string :: () => {
     }
 }
 
+test_interpreter_evaluate_error :: () => {
+    TestCase :: struct {
+        title: str;
+        expr: Expr;
+        expected: RuntimeError;
+    }
+    tests := TestCase.[
+        .{
+            title="-{string}",
+            expr=Expr.{Unary=UnaryExpr.{
+                operator=Token.{type=TokenType.MINUS, lexeme="-"},
+                right=&Expr.{Literal=LiteralExpr.{value=TokenLiteral.{String="foo"}}},
+            }},
+            expected=RuntimeError.{token=Token.{type=TokenType.MINUS, lexeme="-"}, message="Operand must be a number."},
+        },
+    ];
+
+    for tt: tests {
+        interpreter := Interpreter.{};
+        actual := interpreter->evaluate(tt.expr);
+        assert(actual->is_err(), tprintf("{}: must be an error", tt.title));
+        e := actual->err()?;
+
+        assert(e.message == tt.expected.message, tprintf("{}: \"{}\" != \"{}\"", tt.title, e.message, tt.expected.message));
+        assert(e.token.type == tt.expected.token.type, tprintf("{}: \"{}\" != \"{}\"", tt.title, e.token.type, tt.expected.token.type));
+    }
+}
 
 main :: () {
-    test_token_to_string();
+    test_interpreter_evaluate();
+    test_interpreter_evaluate_error();
 }

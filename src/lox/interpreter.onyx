@@ -1,5 +1,6 @@
 #load "./expr"
 #load "./object"
+#load "./runtime_error"
 
 use core
 use core { printf, Result, tprintf }
@@ -8,11 +9,11 @@ Interpreter :: struct {
     // HACK: receiver must have non-void fields, otherwise the error `Function parameters cannot have 'void' as their type.` is raised
     _dummy: bool;
 
-    evaluate :: (interpreter: Interpreter, expr: Expr) -> Result(LoxObject, str) {
+    evaluate :: (interpreter: Interpreter, expr: Expr) -> Result(LoxObject, RuntimeError) {
         return expr->accept(interpreter);
     }
 
-    visit_literal_expr :: (interpreter: Interpreter, expr: LiteralExpr) -> Result(LoxObject, str) {
+    visit_literal_expr :: (interpreter: Interpreter, expr: LiteralExpr) -> Result(LoxObject, RuntimeError) {
         switch expr.value {
             case s: .String {
                 return .{Ok=LoxObject.{String=s}};
@@ -29,11 +30,11 @@ Interpreter :: struct {
         }
     }
 
-    visit_group_expr :: (interpreter: Interpreter, expr: GroupExpr) -> Result(LoxObject, str) {
+    visit_group_expr :: (interpreter: Interpreter, expr: GroupExpr) -> Result(LoxObject, RuntimeError) {
         return interpreter->evaluate(*expr.expression);
     }
 
-    visit_binary_expr :: (interpreter: Interpreter, expr: BinaryExpr) -> Result(LoxObject, str) {
+    visit_binary_expr :: (interpreter: Interpreter, expr: BinaryExpr) -> Result(LoxObject, RuntimeError) {
         // NOTE: left must be evaluated first for side-effect order
         left := interpreter->evaluate(*expr.left)->forward_err();
         right := interpreter->evaluate(*expr.right)->forward_err();
@@ -83,11 +84,12 @@ Interpreter :: struct {
         return .{Ok=LoxObject.{Null=.{}}};
     }
 
-    visit_unary_expr :: (interpreter: Interpreter, expr: UnaryExpr) -> Result(LoxObject, str) {
+    visit_unary_expr :: (interpreter: Interpreter, expr: UnaryExpr) -> Result(LoxObject, RuntimeError) {
         right := interpreter->evaluate(*expr.right)->forward_err();
 
         switch expr.operator.type {
             case TokenType.MINUS {
+                interpreter->_check_number_operand(expr.operator, right)->forward_err();
                 return .{Ok=LoxObject.{Number=-right.Number?}};
             }
             case TokenType.BANG {
@@ -116,5 +118,17 @@ Interpreter :: struct {
 
     _is_equal :: (interpreter: Interpreter, left: LoxObject, right: LoxObject) -> bool {
         return left == right;
+    }
+
+    // HACK: returned LoxObject is not used (it is only defined for forward_err() method)
+    _check_number_operand :: (interpreter: Interpreter, token: Token, operand: LoxObject) -> Result(LoxObject, RuntimeError) {
+        switch operand {
+            case .Number {
+                return .{Ok=.{}};
+            }
+            case #default {
+                return .{Err=RuntimeError.{token=token, message="Operand must be a number."}};
+            }
+        }
     }
 }

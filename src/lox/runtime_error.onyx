@@ -1,0 +1,6 @@
+#load "./token"
+
+RuntimeError :: struct {
+    message: str;
+    token: Token;
+}
