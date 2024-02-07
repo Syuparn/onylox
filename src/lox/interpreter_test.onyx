@@ -276,6 +276,150 @@ test_interpreter_evaluate_error :: () => {
             }},
             expected=RuntimeError.{token=Token.{type=TokenType.MINUS, lexeme="-"}, message="Operand must be a number."},
         },
+        .{
+            title="{string} > {number}",
+            expr=Expr.{Binary=BinaryExpr.{
+                left=&Expr.{Literal=LiteralExpr.{value=TokenLiteral.{String="foo"}}},
+                operator=Token.{type=TokenType.GREATER, lexeme=">"},
+                right=&Expr.{Literal=LiteralExpr.{value=TokenLiteral.{Number=123}}},
+            }},
+            expected=RuntimeError.{token=Token.{type=TokenType.GREATER, lexeme=">"}, message="Operand must be numbers."},
+        },
+        .{
+            title="{number} > {string}",
+            expr=Expr.{Binary=BinaryExpr.{
+                left=&Expr.{Literal=LiteralExpr.{value=TokenLiteral.{Number=123}}},
+                operator=Token.{type=TokenType.GREATER, lexeme=">"},
+                right=&Expr.{Literal=LiteralExpr.{value=TokenLiteral.{String="foo"}}},
+            }},
+            expected=RuntimeError.{token=Token.{type=TokenType.GREATER, lexeme=">"}, message="Operand must be numbers."},
+        },
+        .{
+            title="{string} >= {number}",
+            expr=Expr.{Binary=BinaryExpr.{
+                left=&Expr.{Literal=LiteralExpr.{value=TokenLiteral.{String="foo"}}},
+                operator=Token.{type=TokenType.GREATER_EQUAL, lexeme=">"},
+                right=&Expr.{Literal=LiteralExpr.{value=TokenLiteral.{Number=123}}},
+            }},
+            expected=RuntimeError.{token=Token.{type=TokenType.GREATER_EQUAL, lexeme=">"}, message="Operand must be numbers."},
+        },
+        .{
+            title="{number} >= {string}",
+            expr=Expr.{Binary=BinaryExpr.{
+                left=&Expr.{Literal=LiteralExpr.{value=TokenLiteral.{Number=123}}},
+                operator=Token.{type=TokenType.GREATER_EQUAL, lexeme=">"},
+                right=&Expr.{Literal=LiteralExpr.{value=TokenLiteral.{String="foo"}}},
+            }},
+            expected=RuntimeError.{token=Token.{type=TokenType.GREATER_EQUAL, lexeme=">"}, message="Operand must be numbers."},
+        },
+        .{
+            title="{string} < {number}",
+            expr=Expr.{Binary=BinaryExpr.{
+                left=&Expr.{Literal=LiteralExpr.{value=TokenLiteral.{String="foo"}}},
+                operator=Token.{type=TokenType.LESS, lexeme="<"},
+                right=&Expr.{Literal=LiteralExpr.{value=TokenLiteral.{Number=123}}},
+            }},
+            expected=RuntimeError.{token=Token.{type=TokenType.LESS, lexeme="<"}, message="Operand must be numbers."},
+        },
+        .{
+            title="{number} < {string}",
+            expr=Expr.{Binary=BinaryExpr.{
+                left=&Expr.{Literal=LiteralExpr.{value=TokenLiteral.{Number=123}}},
+                operator=Token.{type=TokenType.LESS, lexeme="<"},
+                right=&Expr.{Literal=LiteralExpr.{value=TokenLiteral.{String="foo"}}},
+            }},
+            expected=RuntimeError.{token=Token.{type=TokenType.LESS, lexeme="<"}, message="Operand must be numbers."},
+        },
+        .{
+            title="{string} <= {number}",
+            expr=Expr.{Binary=BinaryExpr.{
+                left=&Expr.{Literal=LiteralExpr.{value=TokenLiteral.{String="foo"}}},
+                operator=Token.{type=TokenType.LESS_EQUAL, lexeme="<="},
+                right=&Expr.{Literal=LiteralExpr.{value=TokenLiteral.{Number=123}}},
+            }},
+            expected=RuntimeError.{token=Token.{type=TokenType.LESS_EQUAL, lexeme="<="}, message="Operand must be numbers."},
+        },
+        .{
+            title="{number} <= {string}",
+            expr=Expr.{Binary=BinaryExpr.{
+                left=&Expr.{Literal=LiteralExpr.{value=TokenLiteral.{Number=123}}},
+                operator=Token.{type=TokenType.LESS_EQUAL, lexeme="<="},
+                right=&Expr.{Literal=LiteralExpr.{value=TokenLiteral.{String="foo"}}},
+            }},
+            expected=RuntimeError.{token=Token.{type=TokenType.LESS_EQUAL, lexeme="<="}, message="Operand must be numbers."},
+        },
+        .{
+            title="{number} - {string}",
+            expr=Expr.{Binary=BinaryExpr.{
+                left=&Expr.{Literal=LiteralExpr.{value=TokenLiteral.{Number=123}}},
+                operator=Token.{type=TokenType.MINUS, lexeme="-"},
+                right=&Expr.{Literal=LiteralExpr.{value=TokenLiteral.{String="foo"}}},
+            }},
+            expected=RuntimeError.{token=Token.{type=TokenType.MINUS, lexeme="-"}, message="Operand must be numbers."},
+        },
+        .{
+            title="{number} - {string}",
+            expr=Expr.{Binary=BinaryExpr.{
+                left=&Expr.{Literal=LiteralExpr.{value=TokenLiteral.{Number=123}}},
+                operator=Token.{type=TokenType.MINUS, lexeme="-"},
+                right=&Expr.{Literal=LiteralExpr.{value=TokenLiteral.{String="foo"}}},
+            }},
+            expected=RuntimeError.{token=Token.{type=TokenType.MINUS, lexeme="-"}, message="Operand must be numbers."},
+        },
+        .{
+            title="{number} / {string}",
+            expr=Expr.{Binary=BinaryExpr.{
+                left=&Expr.{Literal=LiteralExpr.{value=TokenLiteral.{Number=123}}},
+                operator=Token.{type=TokenType.SLASH, lexeme="/"},
+                right=&Expr.{Literal=LiteralExpr.{value=TokenLiteral.{String="foo"}}},
+            }},
+            expected=RuntimeError.{token=Token.{type=TokenType.SLASH, lexeme="/"}, message="Operand must be numbers."},
+        },
+        .{
+            title="{number} / {string}",
+            expr=Expr.{Binary=BinaryExpr.{
+                left=&Expr.{Literal=LiteralExpr.{value=TokenLiteral.{Number=123}}},
+                operator=Token.{type=TokenType.SLASH, lexeme="/"},
+                right=&Expr.{Literal=LiteralExpr.{value=TokenLiteral.{String="foo"}}},
+            }},
+            expected=RuntimeError.{token=Token.{type=TokenType.SLASH, lexeme="/"}, message="Operand must be numbers."},
+        },
+        .{
+            title="{number} * {string}",
+            expr=Expr.{Binary=BinaryExpr.{
+                left=&Expr.{Literal=LiteralExpr.{value=TokenLiteral.{Number=123}}},
+                operator=Token.{type=TokenType.STAR, lexeme="*"},
+                right=&Expr.{Literal=LiteralExpr.{value=TokenLiteral.{String="foo"}}},
+            }},
+            expected=RuntimeError.{token=Token.{type=TokenType.STAR, lexeme="*"}, message="Operand must be numbers."},
+        },
+        .{
+            title="{number} * {string}",
+            expr=Expr.{Binary=BinaryExpr.{
+                left=&Expr.{Literal=LiteralExpr.{value=TokenLiteral.{Number=123}}},
+                operator=Token.{type=TokenType.STAR, lexeme="*"},
+                right=&Expr.{Literal=LiteralExpr.{value=TokenLiteral.{String="foo"}}},
+            }},
+            expected=RuntimeError.{token=Token.{type=TokenType.STAR, lexeme="*"}, message="Operand must be numbers."},
+        },
+        .{
+            title="{number} + {string}",
+            expr=Expr.{Binary=BinaryExpr.{
+                left=&Expr.{Literal=LiteralExpr.{value=TokenLiteral.{Number=123}}},
+                operator=Token.{type=TokenType.PLUS, lexeme="+"},
+                right=&Expr.{Literal=LiteralExpr.{value=TokenLiteral.{String="foo"}}},
+            }},
+            expected=RuntimeError.{token=Token.{type=TokenType.PLUS, lexeme="+"}, message="Operand must be two numbers or two strings."},
+        },
+        .{
+            title="{number} + {string}",
+            expr=Expr.{Binary=BinaryExpr.{
+                left=&Expr.{Literal=LiteralExpr.{value=TokenLiteral.{Number=123}}},
+                operator=Token.{type=TokenType.PLUS, lexeme="+"},
+                right=&Expr.{Literal=LiteralExpr.{value=TokenLiteral.{String="foo"}}},
+            }},
+            expected=RuntimeError.{token=Token.{type=TokenType.PLUS, lexeme="+"}, message="Operand must be two numbers or two strings."},
+        },
     ];
 
     for tt: tests {

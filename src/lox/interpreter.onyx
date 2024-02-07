@@ -41,35 +41,53 @@ Interpreter :: struct {
 
         switch expr.operator.type {
             case TokenType.MINUS {
+                interpreter->_check_number_operands(expr.operator, left, right)->forward_err();
                 return .{Ok=LoxObject.{Number=left.Number? - right.Number?}};
             }
             case TokenType.SLASH {
+                interpreter->_check_number_operands(expr.operator, left, right)->forward_err();
                 return .{Ok=LoxObject.{Number=left.Number? / right.Number?}};
             }
             case TokenType.STAR {
+                interpreter->_check_number_operands(expr.operator, left, right)->forward_err();
                 return .{Ok=LoxObject.{Number=left.Number? * right.Number?}};
             }
             case TokenType.PLUS {
                 switch left {
                     case ln: .Number {
-                        return .{Ok=LoxObject.{Number=ln + right.Number?}};
+                        switch right {
+                            case rn: .Number {
+                                return .{Ok=LoxObject.{Number=ln + rn}};
+                            }
+                            case #default ---
+                        }
                     }
                     case ls: .String {
-                        return .{Ok=LoxObject.{String=tprintf("{}{}", ls, right.String?)}};
+                        switch right {
+                            case rs: .String {
+                                return .{Ok=LoxObject.{String=tprintf("{}{}", ls, rs)}};
+                            }
+                            case #default ---
+                        }
                     }
                     case #default ---
                 }
+                return .{Err=RuntimeError.{token=expr.operator, message="Operand must be two numbers or two strings."}};
             }
             case TokenType.GREATER {
+                interpreter->_check_number_operands(expr.operator, left, right)->forward_err();
                 return .{Ok=LoxObject.{Bool=left.Number? > right.Number?}};
             }
             case TokenType.GREATER_EQUAL {
+                interpreter->_check_number_operands(expr.operator, left, right)->forward_err();
                 return .{Ok=LoxObject.{Bool=left.Number? >= right.Number?}};
             }
             case TokenType.LESS {
+                interpreter->_check_number_operands(expr.operator, left, right)->forward_err();
                 return .{Ok=LoxObject.{Bool=left.Number? < right.Number?}};
             }
             case TokenType.LESS_EQUAL {
+                interpreter->_check_number_operands(expr.operator, left, right)->forward_err();
                 return .{Ok=LoxObject.{Bool=left.Number? <= right.Number?}};
             }
             case TokenType.EQUAL_EQUAL {
@@ -80,8 +98,7 @@ Interpreter :: struct {
             }
         }
 
-        // TODO: impl
-        return .{Ok=LoxObject.{Null=.{}}};
+        return .{Err=RuntimeError.{token=expr.operator, message="Unreachable (should be onylox bug)."}};
     }
 
     visit_unary_expr :: (interpreter: Interpreter, expr: UnaryExpr) -> Result(LoxObject, RuntimeError) {
@@ -93,13 +110,11 @@ Interpreter :: struct {
                 return .{Ok=LoxObject.{Number=-right.Number?}};
             }
             case TokenType.BANG {
-                // TODO: error handling
                 return .{Ok=LoxObject.{Bool=!interpreter->_is_truthy(right)}};
             }
         }
 
-        // unreachable
-        return .{Ok=right};
+        return .{Err=RuntimeError.{token=expr.operator, message="Unreachable (should be onylox bug)."}};
     }
 
     _is_truthy :: (interpreter: Interpreter, obj: LoxObject) -> bool {
@@ -130,5 +145,22 @@ Interpreter :: struct {
                 return .{Err=RuntimeError.{token=token, message="Operand must be a number."}};
             }
         }
+    }
+
+    // HACK: returned LoxObject is not used (it is only defined for forward_err() method)
+    _check_number_operands :: (interpreter: Interpreter, token: Token, left: LoxObject, right: LoxObject) -> Result(LoxObject, RuntimeError) {
+        switch left {
+            case .Number --- // continue
+            case #default {
+                return .{Err=RuntimeError.{token=token, message="Operand must be numbers."}};
+            }
+        }
+        switch right {
+            case .Number --- // continue
+            case #default {
+                return .{Err=RuntimeError.{token=token, message="Operand must be numbers."}};
+            }
+        }
+        return .{Ok=.{}};
     }
 }
