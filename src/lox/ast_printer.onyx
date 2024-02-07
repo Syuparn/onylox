@@ -2,31 +2,31 @@
 #load "./object"
 
 use core
-use core { printf, tprintf }
+use core { printf, Result, tprintf }
 use core.string
 
 ASTPrinter :: struct {
     // HACK: receiver must have non-void fields, otherwise the error `Function parameters cannot have 'void' as their type.` is raised
     _dummy: bool;
 
-    print :: (p: ASTPrinter, expr: Expr) -> LoxObject {
+    print :: (p: ASTPrinter, expr: Expr) -> Result(LoxObject, str) {
         return expr->accept(p);
     }
 
-    visit_binary_expr :: (p: ASTPrinter, expr: BinaryExpr) -> LoxObject {
+    visit_binary_expr :: (p: ASTPrinter, expr: BinaryExpr) -> Result(LoxObject, str) {
         return p->parenthesize(expr.operator.lexeme, expr.left, expr.right);
     }
 
-    visit_unary_expr :: (p: ASTPrinter, expr: UnaryExpr) -> LoxObject {
+    visit_unary_expr :: (p: ASTPrinter, expr: UnaryExpr) -> Result(LoxObject, str) {
         return p->parenthesize(expr.operator.lexeme, expr.right);
     }
 
-    visit_literal_expr :: (p: ASTPrinter, expr: LiteralExpr) -> LoxObject {
+    visit_literal_expr :: (p: ASTPrinter, expr: LiteralExpr) -> Result(LoxObject, str) {
         s := p->_visit_literal_expr(expr);
-        return LoxObject.{String=s};
+        return .{Ok=LoxObject.{String=s}};
     }
 
-    visit_group_expr :: (p: ASTPrinter, expr: GroupExpr) -> LoxObject {
+    visit_group_expr :: (p: ASTPrinter, expr: GroupExpr) -> Result(LoxObject, str) {
         return p->parenthesize("group", expr.expression);
     }
 
@@ -47,7 +47,7 @@ ASTPrinter :: struct {
         }
     }
 
-    parenthesize :: (p: ASTPrinter, name: str, exprs: ..&Expr) -> LoxObject {
+    parenthesize :: (p: ASTPrinter, name: str, exprs: ..&Expr) -> Result(LoxObject, str) {
         // TODO: replace with initialize function
         buffer_memory := "                                                                                          ";
         buffer := string.buffer_make(buffer_memory, "(");
@@ -56,15 +56,16 @@ ASTPrinter :: struct {
             string.buffer_append(&buffer, " ");
 
             if expr == null {
+                // NOTE: do not raise error here (because this is used for debugging)
                 string.buffer_append(&buffer, "<null Expr (should be Onylox bug)>");
             } else {
-                obj := (*expr)->accept(p);
+                obj := (*expr)->accept(p)->forward_err();
                 s := obj.String->unwrap();
                 string.buffer_append(&buffer, s);
             }
         }
         string.buffer_append(&buffer, ")");
 
-        return LoxObject.{String=string.buffer_to_str(&buffer)};
+        return .{Ok=LoxObject.{String=string.buffer_to_str(&buffer)}};
     }
 }

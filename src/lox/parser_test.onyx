@@ -15,7 +15,7 @@ _to_list :: (values: []$T) -> list.List(T) {
 
 print_expr :: (expr: Expr) -> str {
     printer := ASTPrinter.{};
-    obj := printer->print(expr);
+    obj := printer->print(expr)->ok()?; // must be ok
     return obj.String?;
 }
 

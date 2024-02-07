@@ -74,7 +74,8 @@ test_ast_printer :: () => {
 
     for tt: tests {
         printer := ASTPrinter.{};
-        obj := printer->print(tt.expr);
+        // must be ok
+        obj := printer->print(tt.expr)->ok()?;
         actual := obj.String->unwrap();
         assert(actual == tt.expected, tprintf("\"{}\" != \"{}\"", actual, tt.expected));
     }

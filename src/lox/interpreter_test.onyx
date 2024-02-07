@@ -255,7 +255,7 @@ test_token_to_string :: () => {
 
     for tt: tests {
         interpreter := Interpreter.{};
-        actual := interpreter->evaluate(tt.expr);
+        actual := interpreter->evaluate(tt.expr)->expect(tprintf("{}: must not be error", tt.title));
 
         assert(actual == tt.expected, tprintf("{}: \"{}\" != \"{}\"", tt.title, actual, tt.expected));
     }

@@ -1,6 +1,6 @@
 #load "./token"
 
-use core { printf }
+use core { printf, Result }
 use core.slice
 
 Expr :: union {
@@ -9,7 +9,7 @@ Expr :: union {
     Unary: UnaryExpr;
     Group: GroupExpr;
 
-    accept :: (expr: Expr, visitor: $T) -> LoxObject where Visitor(T) {
+    accept :: (expr: Expr, visitor: $T) -> Result(LoxObject, str) where Visitor(T) {
         switch expr {
             case e: .Literal {
                 return visitor->visit_literal_expr(e);
@@ -48,8 +48,8 @@ GroupExpr :: struct {
 }
 
 Visitor :: interface (t: $T) {
-    { t->visit_literal_expr(LiteralExpr.{}) } -> LoxObject;
-    { t->visit_binary_expr(BinaryExpr.{}) } -> LoxObject;
-    { t->visit_unary_expr(UnaryExpr.{}) } -> LoxObject;
-    { t->visit_group_expr(GroupExpr.{}) } -> LoxObject;
+    { t->visit_literal_expr(LiteralExpr.{}) } -> Result(LoxObject, str);
+    { t->visit_binary_expr(BinaryExpr.{}) } -> Result(LoxObject, str);
+    { t->visit_unary_expr(UnaryExpr.{}) } -> Result(LoxObject, str);
+    { t->visit_group_expr(GroupExpr.{}) } -> Result(LoxObject, str);
 }

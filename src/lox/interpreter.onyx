@@ -2,104 +2,102 @@
 #load "./object"
 
 use core
-use core { printf, tprintf }
+use core { printf, Result, tprintf }
 
 Interpreter :: struct {
     // HACK: receiver must have non-void fields, otherwise the error `Function parameters cannot have 'void' as their type.` is raised
     _dummy: bool;
 
-    evaluate :: (interpreter: Interpreter, expr: Expr) -> LoxObject {
+    evaluate :: (interpreter: Interpreter, expr: Expr) -> Result(LoxObject, str) {
         return expr->accept(interpreter);
     }
 
-    visit_literal_expr :: (interpreter: Interpreter, expr: LiteralExpr) -> LoxObject {
+    visit_literal_expr :: (interpreter: Interpreter, expr: LiteralExpr) -> Result(LoxObject, str) {
         switch expr.value {
             case s: .String {
-                return LoxObject.{String=s};
+                return .{Ok=LoxObject.{String=s}};
             }
             case b: .Bool {
-                return LoxObject.{Bool=b};
+                return .{Ok=LoxObject.{Bool=b}};
             }
             case n: .Number {
-                return LoxObject.{Number=n};
+                return .{Ok=LoxObject.{Number=n}};
             }
             case .Null {
-                return LoxObject.{Null=.{}};
+                return .{Ok=LoxObject.{Null=.{}}};
             }
         }
     }
 
-    visit_group_expr :: (interpreter: Interpreter, expr: GroupExpr) -> LoxObject {
+    visit_group_expr :: (interpreter: Interpreter, expr: GroupExpr) -> Result(LoxObject, str) {
         return interpreter->evaluate(*expr.expression);
     }
 
-    visit_binary_expr :: (interpreter: Interpreter, expr: BinaryExpr) -> LoxObject {
+    visit_binary_expr :: (interpreter: Interpreter, expr: BinaryExpr) -> Result(LoxObject, str) {
         // NOTE: left must be evaluated first for side-effect order
-        left := interpreter->evaluate(*expr.left);
-        right := interpreter->evaluate(*expr.right);
+        left := interpreter->evaluate(*expr.left)->forward_err();
+        right := interpreter->evaluate(*expr.right)->forward_err();
 
         switch expr.operator.type {
             case TokenType.MINUS {
-                return LoxObject.{Number=left.Number? - right.Number?};
+                return .{Ok=LoxObject.{Number=left.Number? - right.Number?}};
             }
             case TokenType.SLASH {
-                return LoxObject.{Number=left.Number? / right.Number?};
+                return .{Ok=LoxObject.{Number=left.Number? / right.Number?}};
             }
             case TokenType.STAR {
-                return LoxObject.{Number=left.Number? * right.Number?};
+                return .{Ok=LoxObject.{Number=left.Number? * right.Number?}};
             }
             case TokenType.PLUS {
                 switch left {
                     case ln: .Number {
-                        return LoxObject.{Number=ln + right.Number?};
+                        return .{Ok=LoxObject.{Number=ln + right.Number?}};
                     }
                     case ls: .String {
-                        return LoxObject.{String=tprintf("{}{}", ls, right.String?)};
+                        return .{Ok=LoxObject.{String=tprintf("{}{}", ls, right.String?)}};
                     }
                     case #default ---
                 }
-                return LoxObject.{Number=left.Number? * right.Number?};
             }
             case TokenType.GREATER {
-                return LoxObject.{Bool=left.Number? > right.Number?};
+                return .{Ok=LoxObject.{Bool=left.Number? > right.Number?}};
             }
             case TokenType.GREATER_EQUAL {
-                return LoxObject.{Bool=left.Number? >= right.Number?};
+                return .{Ok=LoxObject.{Bool=left.Number? >= right.Number?}};
             }
             case TokenType.LESS {
-                return LoxObject.{Bool=left.Number? < right.Number?};
+                return .{Ok=LoxObject.{Bool=left.Number? < right.Number?}};
             }
             case TokenType.LESS_EQUAL {
-                return LoxObject.{Bool=left.Number? <= right.Number?};
+                return .{Ok=LoxObject.{Bool=left.Number? <= right.Number?}};
             }
             case TokenType.EQUAL_EQUAL {
-                return LoxObject.{Bool=interpreter->_is_equal(left, right)};
+                return .{Ok=LoxObject.{Bool=interpreter->_is_equal(left, right)}};
             }
             case TokenType.BANG_EQUAL {
-                return LoxObject.{Bool=!interpreter->_is_equal(left, right)};
+                return .{Ok=LoxObject.{Bool=!interpreter->_is_equal(left, right)}};
             }
         }
 
         // TODO: impl
-        return LoxObject.{Null=.{}};
+        return .{Ok=LoxObject.{Null=.{}}};
     }
 
-    visit_unary_expr :: (interpreter: Interpreter, expr: UnaryExpr) -> LoxObject {
-        right := interpreter->evaluate(*expr.right);
+    visit_unary_expr :: (interpreter: Interpreter, expr: UnaryExpr) -> Result(LoxObject, str) {
+        right := interpreter->evaluate(*expr.right)->forward_err();
 
         switch expr.operator.type {
             case TokenType.MINUS {
-                // TODO: error handling
-                return LoxObject.{Number=-right.Number?};
+                return .{Ok=LoxObject.{Number=-right.Number?}};
             }
             case TokenType.BANG {
                 // TODO: error handling
-                return LoxObject.{Bool=!interpreter->_is_truthy(right)};
+                return .{Ok=LoxObject.{Bool=!interpreter->_is_truthy(right)}};
             }
         }
 
         // unreachable
-        return right;
+        return .{Ok=right};
     }
 
     _is_truthy :: (interpreter: Interpreter, obj: LoxObject) -> bool {
