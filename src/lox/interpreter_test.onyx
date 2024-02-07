@@ -48,6 +48,209 @@ test_token_to_string :: () => {
             }},
             expected=LoxObject.{Number=-123},
         },
+        .{
+            title="unary bang (false)",
+            expr=Expr.{Unary=UnaryExpr.{
+                operator=Token.{type=TokenType.BANG, lexeme="!"},
+                right=&Expr.{Literal=LiteralExpr.{value=TokenLiteral.{Bool=false}}},
+            }},
+            expected=LoxObject.{Bool=true},
+        },
+        .{
+            title="unary bang (nil)",
+            expr=Expr.{Unary=UnaryExpr.{
+                operator=Token.{type=TokenType.BANG, lexeme="!"},
+                right=&Expr.{Literal=LiteralExpr.{value=TokenLiteral.{Null=.{}}}},
+            }},
+            expected=LoxObject.{Bool=true},
+        },
+        .{
+            title="unary bang (true)",
+            expr=Expr.{Unary=UnaryExpr.{
+                operator=Token.{type=TokenType.BANG, lexeme="!"},
+                right=&Expr.{Literal=LiteralExpr.{value=TokenLiteral.{Bool=true}}},
+            }},
+            expected=LoxObject.{Bool=false},
+        },
+        .{
+            title="unary bang (number)",
+            expr=Expr.{Unary=UnaryExpr.{
+                operator=Token.{type=TokenType.BANG, lexeme="!"},
+                right=&Expr.{Literal=LiteralExpr.{value=TokenLiteral.{Number=123}}},
+            }},
+            expected=LoxObject.{Bool=false},
+        },
+        .{
+            title="binary minus",
+            expr=Expr.{Binary=BinaryExpr.{
+                left=&Expr.{Literal=LiteralExpr.{value=TokenLiteral.{Number=3}}},
+                operator=Token.{type=TokenType.MINUS, lexeme="-"},
+                right=&Expr.{Literal=LiteralExpr.{value=TokenLiteral.{Number=1}}},
+            }},
+            expected=LoxObject.{Number=2},
+        },
+        .{
+            title="binary slash",
+            expr=Expr.{Binary=BinaryExpr.{
+                left=&Expr.{Literal=LiteralExpr.{value=TokenLiteral.{Number=6}}},
+                operator=Token.{type=TokenType.SLASH, lexeme="/"},
+                right=&Expr.{Literal=LiteralExpr.{value=TokenLiteral.{Number=3}}},
+            }},
+            expected=LoxObject.{Number=2},
+        },
+        .{
+            title="binary star",
+            expr=Expr.{Binary=BinaryExpr.{
+                left=&Expr.{Literal=LiteralExpr.{value=TokenLiteral.{Number=6}}},
+                operator=Token.{type=TokenType.STAR, lexeme="*"},
+                right=&Expr.{Literal=LiteralExpr.{value=TokenLiteral.{Number=3}}},
+            }},
+            expected=LoxObject.{Number=18},
+        },
+        .{
+            title="binary plus (number)",
+            expr=Expr.{Binary=BinaryExpr.{
+                left=&Expr.{Literal=LiteralExpr.{value=TokenLiteral.{Number=6}}},
+                operator=Token.{type=TokenType.PLUS, lexeme="+"},
+                right=&Expr.{Literal=LiteralExpr.{value=TokenLiteral.{Number=3}}},
+            }},
+            expected=LoxObject.{Number=9},
+        },
+        .{
+            title="binary plus (string)",
+            expr=Expr.{Binary=BinaryExpr.{
+                left=&Expr.{Literal=LiteralExpr.{value=TokenLiteral.{String="foo"}}},
+                operator=Token.{type=TokenType.PLUS, lexeme="+"},
+                right=&Expr.{Literal=LiteralExpr.{value=TokenLiteral.{String="bar"}}},
+            }},
+            expected=LoxObject.{String="foobar"},
+        },
+        .{
+            title="binary greater",
+            expr=Expr.{Binary=BinaryExpr.{
+                left=&Expr.{Literal=LiteralExpr.{value=TokenLiteral.{Number=6}}},
+                operator=Token.{type=TokenType.GREATER, lexeme=">"},
+                right=&Expr.{Literal=LiteralExpr.{value=TokenLiteral.{Number=3}}},
+            }},
+            expected=LoxObject.{Bool=true},
+        },
+        .{
+            title="binary greater equal",
+            expr=Expr.{Binary=BinaryExpr.{
+                left=&Expr.{Literal=LiteralExpr.{value=TokenLiteral.{Number=6}}},
+                operator=Token.{type=TokenType.GREATER_EQUAL, lexeme=">="},
+                right=&Expr.{Literal=LiteralExpr.{value=TokenLiteral.{Number=3}}},
+            }},
+            expected=LoxObject.{Bool=true},
+        },
+        .{
+            title="binary less",
+            expr=Expr.{Binary=BinaryExpr.{
+                left=&Expr.{Literal=LiteralExpr.{value=TokenLiteral.{Number=6}}},
+                operator=Token.{type=TokenType.LESS, lexeme="<"},
+                right=&Expr.{Literal=LiteralExpr.{value=TokenLiteral.{Number=3}}},
+            }},
+            expected=LoxObject.{Bool=false},
+        },
+        .{
+            title="binary less equal",
+            expr=Expr.{Binary=BinaryExpr.{
+                left=&Expr.{Literal=LiteralExpr.{value=TokenLiteral.{Number=6}}},
+                operator=Token.{type=TokenType.LESS, lexeme="<="},
+                right=&Expr.{Literal=LiteralExpr.{value=TokenLiteral.{Number=3}}},
+            }},
+            expected=LoxObject.{Bool=false},
+        },
+        .{
+            title="binary equal equal (number)",
+            expr=Expr.{Binary=BinaryExpr.{
+                left=&Expr.{Literal=LiteralExpr.{value=TokenLiteral.{Number=6}}},
+                operator=Token.{type=TokenType.EQUAL_EQUAL, lexeme="=="},
+                right=&Expr.{Literal=LiteralExpr.{value=TokenLiteral.{Number=6}}},
+            }},
+            expected=LoxObject.{Bool=true},
+        },
+        .{
+            title="binary equal equal (string)",
+            expr=Expr.{Binary=BinaryExpr.{
+                left=&Expr.{Literal=LiteralExpr.{value=TokenLiteral.{String="foo"}}},
+                operator=Token.{type=TokenType.EQUAL_EQUAL, lexeme="=="},
+                right=&Expr.{Literal=LiteralExpr.{value=TokenLiteral.{String="foo"}}},
+            }},
+            expected=LoxObject.{Bool=true},
+        },
+        .{
+            title="binary equal equal (bool)",
+            expr=Expr.{Binary=BinaryExpr.{
+                left=&Expr.{Literal=LiteralExpr.{value=TokenLiteral.{Bool=true}}},
+                operator=Token.{type=TokenType.EQUAL_EQUAL, lexeme="=="},
+                right=&Expr.{Literal=LiteralExpr.{value=TokenLiteral.{Bool=true}}},
+            }},
+            expected=LoxObject.{Bool=true},
+        },
+        .{
+            title="binary equal equal (nil)",
+            expr=Expr.{Binary=BinaryExpr.{
+                left=&Expr.{Literal=LiteralExpr.{value=TokenLiteral.{Null=.{}}}},
+                operator=Token.{type=TokenType.EQUAL_EQUAL, lexeme="=="},
+                right=&Expr.{Literal=LiteralExpr.{value=TokenLiteral.{Null=.{}}}},
+            }},
+            expected=LoxObject.{Bool=true},
+        },
+        .{
+            title="binary equal equal (different type)",
+            expr=Expr.{Binary=BinaryExpr.{
+                left=&Expr.{Literal=LiteralExpr.{value=TokenLiteral.{Number=6}}},
+                operator=Token.{type=TokenType.EQUAL_EQUAL, lexeme="=="},
+                right=&Expr.{Literal=LiteralExpr.{value=TokenLiteral.{String="foo"}}},
+            }},
+            expected=LoxObject.{Bool=false},
+        },
+        .{
+            title="binary bang equal (number)",
+            expr=Expr.{Binary=BinaryExpr.{
+                left=&Expr.{Literal=LiteralExpr.{value=TokenLiteral.{Number=6}}},
+                operator=Token.{type=TokenType.BANG_EQUAL, lexeme="!="},
+                right=&Expr.{Literal=LiteralExpr.{value=TokenLiteral.{Number=7}}},
+            }},
+            expected=LoxObject.{Bool=true},
+        },
+        .{
+            title="binary bang equal (string)",
+            expr=Expr.{Binary=BinaryExpr.{
+                left=&Expr.{Literal=LiteralExpr.{value=TokenLiteral.{String="foo"}}},
+                operator=Token.{type=TokenType.BANG_EQUAL, lexeme="!="},
+                right=&Expr.{Literal=LiteralExpr.{value=TokenLiteral.{String="bar"}}},
+            }},
+            expected=LoxObject.{Bool=true},
+        },
+        .{
+            title="binary bang equal (bool)",
+            expr=Expr.{Binary=BinaryExpr.{
+                left=&Expr.{Literal=LiteralExpr.{value=TokenLiteral.{Bool=true}}},
+                operator=Token.{type=TokenType.BANG_EQUAL, lexeme="!="},
+                right=&Expr.{Literal=LiteralExpr.{value=TokenLiteral.{Bool=false}}},
+            }},
+            expected=LoxObject.{Bool=true},
+        },
+        .{
+            title="binary bang equal (nil)",
+            expr=Expr.{Binary=BinaryExpr.{
+                left=&Expr.{Literal=LiteralExpr.{value=TokenLiteral.{Null=.{}}}},
+                operator=Token.{type=TokenType.BANG_EQUAL, lexeme="!="},
+                right=&Expr.{Literal=LiteralExpr.{value=TokenLiteral.{Null=.{}}}},
+            }},
+            expected=LoxObject.{Bool=false},
+        },
+        .{
+            title="binary bang equal (different type)",
+            expr=Expr.{Binary=BinaryExpr.{
+                left=&Expr.{Literal=LiteralExpr.{value=TokenLiteral.{Number=6}}},
+                operator=Token.{type=TokenType.BANG_EQUAL, lexeme="!="},
+                right=&Expr.{Literal=LiteralExpr.{value=TokenLiteral.{String="foo"}}},
+            }},
+            expected=LoxObject.{Bool=true},
+        },
     ];
 
     for tt: tests {

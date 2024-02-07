@@ -2,7 +2,7 @@
 #load "./object"
 
 use core
-use core { printf }
+use core { printf, tprintf }
 
 Interpreter :: struct {
     // HACK: receiver must have non-void fields, otherwise the error `Function parameters cannot have 'void' as their type.` is raised
@@ -34,6 +34,52 @@ Interpreter :: struct {
     }
 
     visit_binary_expr :: (interpreter: Interpreter, expr: BinaryExpr) -> LoxObject {
+        // NOTE: left must be evaluated first for side-effect order
+        left := interpreter->evaluate(*expr.left);
+        right := interpreter->evaluate(*expr.right);
+
+        switch expr.operator.type {
+            case TokenType.MINUS {
+                return LoxObject.{Number=left.Number? - right.Number?};
+            }
+            case TokenType.SLASH {
+                return LoxObject.{Number=left.Number? / right.Number?};
+            }
+            case TokenType.STAR {
+                return LoxObject.{Number=left.Number? * right.Number?};
+            }
+            case TokenType.PLUS {
+                switch left {
+                    case ln: .Number {
+                        return LoxObject.{Number=ln + right.Number?};
+                    }
+                    case ls: .String {
+                        return LoxObject.{String=tprintf("{}{}", ls, right.String?)};
+                    }
+                    case #default ---
+                }
+                return LoxObject.{Number=left.Number? * right.Number?};
+            }
+            case TokenType.GREATER {
+                return LoxObject.{Bool=left.Number? > right.Number?};
+            }
+            case TokenType.GREATER_EQUAL {
+                return LoxObject.{Bool=left.Number? >= right.Number?};
+            }
+            case TokenType.LESS {
+                return LoxObject.{Bool=left.Number? < right.Number?};
+            }
+            case TokenType.LESS_EQUAL {
+                return LoxObject.{Bool=left.Number? <= right.Number?};
+            }
+            case TokenType.EQUAL_EQUAL {
+                return LoxObject.{Bool=interpreter->_is_equal(left, right)};
+            }
+            case TokenType.BANG_EQUAL {
+                return LoxObject.{Bool=!interpreter->_is_equal(left, right)};
+            }
+        }
+
         // TODO: impl
         return LoxObject.{Null=.{}};
     }
@@ -46,9 +92,31 @@ Interpreter :: struct {
                 // TODO: error handling
                 return LoxObject.{Number=-right.Number?};
             }
+            case TokenType.BANG {
+                // TODO: error handling
+                return LoxObject.{Bool=!interpreter->_is_truthy(right)};
+            }
         }
 
         // unreachable
         return right;
+    }
+
+    _is_truthy :: (interpreter: Interpreter, obj: LoxObject) -> bool {
+        switch obj {
+            case .Null {
+                return false;
+            }
+            case b: .Bool {
+                return b;
+            }
+            case #default {
+                return true;
+            }
+        }
+    }
+
+    _is_equal :: (interpreter: Interpreter, left: LoxObject, right: LoxObject) -> bool {
+        return left == right;
     }
 }
