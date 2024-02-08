@@ -13,7 +13,8 @@ Interpreter :: struct {
     interpret :: (interpreter: Interpreter, expr: Expr) => {
         result := interpreter->evaluate(expr);
         if result->is_err() {
-
+            err := result->err()?;
+            Lox.runtime_error(err.token, err.message);
         }
     }
 
