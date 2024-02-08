@@ -5,11 +5,15 @@ use core.string
 use runtime.platform
 
 #load "./ast_printer"
+#load "./interpreter"
 #load "./options"
 #load "./parser"
 #load "./scanner"
 
 had_error := false;
+had_runtime_error := false;
+// should be global so that repl can share env
+interpreter := Interpreter.{};
 
 Lox :: struct {
     main :: (l: &Lox, args: [][&]u8) => {
@@ -62,6 +66,9 @@ Lox :: struct {
         if had_error {
             os.exit(65);
         }
+        if had_runtime_error {
+            os.exit(70);
+        }
     }
 
     _run :: (l: &Lox, source: str) => {
@@ -69,16 +76,13 @@ Lox :: struct {
         tokens := scanner->scan_tokens();
 
         parser := &Parser.{tokens=tokens};
-        ast_printer := ASTPrinter.{};
-
-        Optional.try() {
-            expr := parser->parse()?;
-            printf("{}\n", ast_printer->print(expr));
-        };
+        expr := parser->parse()?;
 
         if had_error {
-            return;
+            return .{};
         }
+
+        interpreter->interpret(expr);
     }
 
     error :: #match {
@@ -92,6 +96,12 @@ Lox :: struct {
                 Lox._report(token.line, tprintf("at '{}'", token.lexeme), message);
             }
         }
+    }
+
+    runtime_error :: (token: Token, message: str) {
+        printf("{}\n[line {}]\n", message, token.line);
+        had_runtime_error = true;
+
     }
 
     _report :: (line: u32, where_: str, message: str) {

@@ -1,4 +1,5 @@
 #load "./expr"
+#load "./lox"
 #load "./object"
 #load "./runtime_error"
 
@@ -8,6 +9,13 @@ use core { printf, Result, tprintf }
 Interpreter :: struct {
     // HACK: receiver must have non-void fields, otherwise the error `Function parameters cannot have 'void' as their type.` is raised
     _dummy: bool;
+
+    interpret :: (interpreter: Interpreter, expr: Expr) => {
+        result := interpreter->evaluate(expr);
+        if result->is_err() {
+
+        }
+    }
 
     evaluate :: (interpreter: Interpreter, expr: Expr) -> Result(LoxObject, RuntimeError) {
         return expr->accept(interpreter);

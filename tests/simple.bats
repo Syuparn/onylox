@@ -10,6 +10,11 @@ setup() {
   assert_output "Usage: onylox [script]"
 }
 
+@test "interpret a simple expr" {
+  run wasmer run --mapdir tests:tests onylox.wasm -- tests/testdata/src/expr.onyx
+  assert_success
+}
+
 # TODO: assert_output after evaluator is implemented
 @test "run a source file" {
   run wasmer run --mapdir tests:tests onylox.wasm -- tests/testdata/src/hello.onyx
