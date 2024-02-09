@@ -14,7 +14,7 @@ use core.string
 Interpreter :: struct {
     environment: Environment = Environment.{};
 
-    interpret :: (interpreter: Interpreter, stmts: &list.List(Stmt)) => {
+    interpret :: (interpreter: &Interpreter, stmts: &list.List(Stmt)) => {
         for stmt: stmts->as_iter() {
             result := interpreter->execute(stmt);
             if result->is_err() {
@@ -25,15 +25,15 @@ Interpreter :: struct {
         }
     }
 
-    execute :: (interpreter: Interpreter, stmt: Stmt) -> Result(void, RuntimeError) {
+    execute :: (interpreter: &Interpreter, stmt: Stmt) -> Result(void, RuntimeError) {
         return stmt->accept(interpreter);
     }
 
-    evaluate :: (interpreter: Interpreter, expr: Expr) -> Result(LoxObject, RuntimeError) {
+    evaluate :: (interpreter: &Interpreter, expr: Expr) -> Result(LoxObject, RuntimeError) {
         return expr->accept(interpreter);
     }
 
-    visit_expression_stmt :: (interpreter: Interpreter, stmt: ExpressionStmt) -> Result(void, RuntimeError) {
+    visit_expression_stmt :: (interpreter: &Interpreter, stmt: ExpressionStmt) -> Result(void, RuntimeError) {
         result := interpreter->evaluate(stmt.expression);
         // NOTE: forward_err cannot be used because returned type is different
         if result->is_err() {
@@ -42,7 +42,7 @@ Interpreter :: struct {
         return .{Ok=.{}};
     }
 
-    visit_print_stmt :: (interpreter: Interpreter, stmt: PrintStmt) -> Result(void, RuntimeError) {
+    visit_print_stmt :: (interpreter: &Interpreter, stmt: PrintStmt) -> Result(void, RuntimeError) {
         result := interpreter->evaluate(stmt.expression);
         // NOTE: forward_err cannot be used because returned type is different
         if result->is_err() {
@@ -54,7 +54,7 @@ Interpreter :: struct {
         return .{Ok=.{}};
     }
 
-    visit_var_stmt :: (interpreter: Interpreter, stmt: VarStmt) -> Result(void, RuntimeError) {
+    visit_var_stmt :: (interpreter: &Interpreter, stmt: VarStmt) -> Result(void, RuntimeError) {
         value := LoxObject.{Null=.{}};
         if !is_empty(stmt.initializer) {
             value = interpreter->evaluate(stmt.initializer?)->forward_err();
@@ -64,13 +64,13 @@ Interpreter :: struct {
         return .{Ok=.{}};
     }
 
-    visit_assign_expr :: (interpreter: Interpreter, expr: AssignExpr) -> Result(LoxObject, RuntimeError) {
+    visit_assign_expr :: (interpreter: &Interpreter, expr: AssignExpr) -> Result(LoxObject, RuntimeError) {
         value := interpreter->evaluate(*expr.value)->forward_err();
         interpreter.environment->assign(expr.name, value)->forward_err();
         return .{Ok=value};
     }
 
-    visit_literal_expr :: (interpreter: Interpreter, expr: LiteralExpr) -> Result(LoxObject, RuntimeError) {
+    visit_literal_expr :: (interpreter: &Interpreter, expr: LiteralExpr) -> Result(LoxObject, RuntimeError) {
         switch expr.value {
             case s: .String {
                 return .{Ok=LoxObject.{String=s}};
@@ -87,11 +87,11 @@ Interpreter :: struct {
         }
     }
 
-    visit_group_expr :: (interpreter: Interpreter, expr: GroupExpr) -> Result(LoxObject, RuntimeError) {
+    visit_group_expr :: (interpreter: &Interpreter, expr: GroupExpr) -> Result(LoxObject, RuntimeError) {
         return interpreter->evaluate(*expr.expression);
     }
 
-    visit_binary_expr :: (interpreter: Interpreter, expr: BinaryExpr) -> Result(LoxObject, RuntimeError) {
+    visit_binary_expr :: (interpreter: &Interpreter, expr: BinaryExpr) -> Result(LoxObject, RuntimeError) {
         // NOTE: left must be evaluated first for side-effect order
         left := interpreter->evaluate(*expr.left)->forward_err();
         right := interpreter->evaluate(*expr.right)->forward_err();
@@ -158,7 +158,7 @@ Interpreter :: struct {
         return .{Err=RuntimeError.{token=expr.operator, message="Unreachable (should be onylox bug)."}};
     }
 
-    visit_unary_expr :: (interpreter: Interpreter, expr: UnaryExpr) -> Result(LoxObject, RuntimeError) {
+    visit_unary_expr :: (interpreter: &Interpreter, expr: UnaryExpr) -> Result(LoxObject, RuntimeError) {
         right := interpreter->evaluate(*expr.right)->forward_err();
 
         switch expr.operator.type {
@@ -174,11 +174,11 @@ Interpreter :: struct {
         return .{Err=RuntimeError.{token=expr.operator, message="Unreachable (should be onylox bug)."}};
     }
 
-    visit_variable_expr :: (interpreter: Interpreter, expr: VariableExpr) -> Result(LoxObject, RuntimeError) {
+    visit_variable_expr :: (interpreter: &Interpreter, expr: VariableExpr) -> Result(LoxObject, RuntimeError) {
         return interpreter.environment->get(expr.name);
     }
 
-    _stringify :: (interpreter: Interpreter, obj: LoxObject) -> str {
+    _stringify :: (interpreter: &Interpreter, obj: LoxObject) -> str {
         switch obj {
             case .Null {
                 return "nil";
@@ -200,7 +200,7 @@ Interpreter :: struct {
         }
     }
 
-    _is_truthy :: (interpreter: Interpreter, obj: LoxObject) -> bool {
+    _is_truthy :: (interpreter: &Interpreter, obj: LoxObject) -> bool {
         switch obj {
             case .Null {
                 return false;
@@ -214,12 +214,12 @@ Interpreter :: struct {
         }
     }
 
-    _is_equal :: (interpreter: Interpreter, left: LoxObject, right: LoxObject) -> bool {
+    _is_equal :: (interpreter: &Interpreter, left: LoxObject, right: LoxObject) -> bool {
         return left == right;
     }
 
     // HACK: returned LoxObject is not used (it is only defined for forward_err() method)
-    _check_number_operand :: (interpreter: Interpreter, token: Token, operand: LoxObject) -> Result(LoxObject, RuntimeError) {
+    _check_number_operand :: (interpreter: &Interpreter, token: Token, operand: LoxObject) -> Result(LoxObject, RuntimeError) {
         switch operand {
             case .Number {
                 return .{Ok=.{}};
@@ -231,7 +231,7 @@ Interpreter :: struct {
     }
 
     // HACK: returned LoxObject is not used (it is only defined for forward_err() method)
-    _check_number_operands :: (interpreter: Interpreter, token: Token, left: LoxObject, right: LoxObject) -> Result(LoxObject, RuntimeError) {
+    _check_number_operands :: (interpreter: &Interpreter, token: Token, left: LoxObject, right: LoxObject) -> Result(LoxObject, RuntimeError) {
         switch left {
             case .Number --- // continue
             case #default {

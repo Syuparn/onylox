@@ -33,14 +33,19 @@ Parser :: struct {
 
     _declaration :: (p: &Parser) -> ? Stmt {
         if p->_match(TokenType.VAR) {
-            return p->_var_declaration()->catch([] {
-                p->_synchronize();
-            });
+            o := p->_var_declaration();
+            if !is_empty(o) {
+                return o?;
+            }
+            p->_synchronize();
+            return Optional.empty(Stmt);
         }
 
-        return p->_statement()->catch([] {
-            p->_synchronize();
-        });
+        o := p->_statement();
+        if !is_empty(o) {
+            return o?;
+        }
+        p->_synchronize();
     }
 
     _var_declaration :: (p: &Parser) -> ? Stmt {
@@ -290,7 +295,8 @@ Parser :: struct {
     }
 }
 
-new_pool_allocator :: () -> PoolAllocator {
+// NOTE: this should be macro because Allocator has a pointer internally and it will be dead after return!
+new_pool_allocator :: macro () -> PoolAllocator {
     a := arena.make(heap_allocator, 32 * 1024);
     allocator := arena.make_allocator(&a);
     return PoolAllocator.{allocator=allocator, arena=a};

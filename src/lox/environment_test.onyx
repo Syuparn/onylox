@@ -1,0 +1,52 @@
+#load "./environment"
+#load "./object"
+#load "./runtime_error"
+#load "./token"
+
+use core { Result, tprintf }
+use core.map
+
+test_define :: () => {
+    TestCase :: struct {
+        title: str;
+        name: str;
+        obj: LoxObject;
+        map: Map(str, LoxObject);
+        expected: Map(str, LoxObject);
+    }
+    tests := TestCase.[
+        .{
+            title="new object",
+            name="foo",
+            obj=LoxObject.{Number=123},
+            map=map.literal(str, LoxObject, .[]),
+            expected=map.literal(str, LoxObject, .[
+                .{"foo", LoxObject.{Number=123}},
+            ]),
+        },
+        .{
+            title="updated object",
+            name="foo",
+            obj=LoxObject.{Number=123},
+            map=map.literal(str, LoxObject, .[
+                .{"foo", LoxObject.{String="old"}},
+            ]),
+            expected=map.literal(str, LoxObject, .[
+                .{"foo", LoxObject.{Number=123}},
+            ]),
+        },
+    ];
+
+    for tt: tests {
+        env := Environment.{value=tt.map};
+        env->define(tt.name, tt.obj);
+
+        actual := env.value;
+        assert(tprintf("{}", actual) == tprintf("{}", tt.expected) , tprintf("{}: {} != {}", tt.title, actual, tt.expected));
+    }
+}
+
+
+main :: () {
+    test_define();
+}

@@ -2,17 +2,17 @@
 #load "./runtime_error"
 #load "./token"
 
-use core { Result, tprintf }
+use core { Result, printf, tprintf }
 use core.map
 
 Environment :: struct {
     value: Map(str, LoxObject) = map.literal(str, LoxObject, .[]);
 
-    define :: (e: Environment, name: str, value: LoxObject) => {
+    define :: (e: &Environment, name: str, value: LoxObject) => {
         e.value->put(name, value);
     }
 
-    get :: (e: Environment, name: Token) -> Result(LoxObject, RuntimeError) {
+    get :: (e: &Environment, name: Token) -> Result(LoxObject, RuntimeError) {
         if e.value->has(name.lexeme) {
             return .{Ok=e.value->get(name.lexeme)?};
         }
@@ -22,7 +22,7 @@ Environment :: struct {
     }
 
     // HACK: returned LoxObject is not used (it is only defined for forward_err() method)
-    assign :: (e: Environment, name: Token, value: LoxObject) -> Result(LoxObject, RuntimeError) {
+    assign :: (e: &Environment, name: Token, value: LoxObject) -> Result(LoxObject, RuntimeError) {
         if e.value->has(name.lexeme) {
             e.value->put(name.lexeme, value);
             return .{Ok=.{}};
