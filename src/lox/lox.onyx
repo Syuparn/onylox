@@ -12,10 +12,10 @@ use runtime.platform
 
 had_error := false;
 had_runtime_error := false;
-// should be global so that repl can share env
-interpreter := Interpreter.{};
 
 Lox :: struct {
+    interpreter: Interpreter = Interpreter.{};
+
     main :: (l: &Lox, args: [][&]u8) => {
         __flush_stdio();
 
@@ -84,7 +84,7 @@ Lox :: struct {
         }
         stmts := result?;
 
-        interpreter->interpret(&stmts);
+        l.interpreter->interpret(&stmts);
     }
 
     error :: #match {

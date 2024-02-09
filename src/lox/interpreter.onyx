@@ -1,8 +1,10 @@
+#load "./environment"
 #load "./expr"
 #load "./lox"
 #load "./object"
 #load "./runtime_error"
 #load "./stmt"
+#load "./util"
 
 use core
 use core { printf, println, Result, tprintf }
@@ -10,8 +12,7 @@ use core.list
 use core.string
 
 Interpreter :: struct {
-    // HACK: receiver must have non-void fields, otherwise the error `Function parameters cannot have 'void' as their type.` is raised
-    _dummy: bool;
+    environment: Environment = Environment.{};
 
     interpret :: (interpreter: Interpreter, stmts: &list.List(Stmt)) => {
         for stmt: stmts->as_iter() {
@@ -54,7 +55,13 @@ Interpreter :: struct {
     }
 
     visit_var_stmt :: (interpreter: Interpreter, stmt: VarStmt) -> Result(void, RuntimeError) {
-        return .{Err=RuntimeError.{message="TODO: impl"}};
+        value := LoxObject.{Null=.{}};
+        if !is_empty(stmt.initializer) {
+            value = interpreter->evaluate(stmt.initializer?)->forward_err();
+        }
+
+        interpreter.environment->define(stmt.name.lexeme, value);
+        return .{Ok=.{}};
     }
 
     visit_literal_expr :: (interpreter: Interpreter, expr: LiteralExpr) -> Result(LoxObject, RuntimeError) {
@@ -162,7 +169,7 @@ Interpreter :: struct {
     }
 
     visit_variable_expr :: (interpreter: Interpreter, expr: VariableExpr) -> Result(LoxObject, RuntimeError) {
-        return .{Err=RuntimeError.{message="TODO: impl"}};
+        return interpreter.environment->get(expr.name);
     }
 
     _stringify :: (interpreter: Interpreter, obj: LoxObject) -> str {

@@ -7,3 +7,14 @@ _to_list :: (values: []$T) -> list.List(T) {
     }
     return l;
 }
+
+is_empty :: (o: ?$T) -> bool {
+    switch o {
+        case .None {
+            return true;
+        }
+        case #default {
+            return false;
+        }
+    }
+}

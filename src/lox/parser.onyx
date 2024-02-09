@@ -46,10 +46,10 @@ Parser :: struct {
     _var_declaration :: (p: &Parser) -> ? Stmt {
         name := p->_consume(TokenType.IDENTIFIER, "Expect variable name.")?;
 
-        // NOTE: variable has null at first
-        initializer := Expr.{Literal=LiteralExpr.{value=TokenLiteral.{Null=.{}}}};
+        initializer := Optional.empty(Expr);
         if p->_match(TokenType.EQUAL) {
-            initializer = p->_expression()?;
+            // NOTE: wrap and unwrap seems verbose, but this is nesessary for early return!
+            initializer = Optional.make(p->_expression()?);
         }
 
         p->_consume(TokenType.SEMICOLON, "Expect ';' after variable declaration.")?;

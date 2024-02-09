@@ -32,7 +32,7 @@ PrintStmt :: struct {
 
 VarStmt :: struct {
     name: Token;
-    initializer: Expr;
+    initializer: ?Expr;
 }
 
 StmtVisitor :: interface (t: $T) {

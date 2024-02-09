@@ -263,6 +263,31 @@ test_interpreter_evaluate :: () => {
     }
 }
 
+test_interpreter_evaluate_variable :: () => {
+    TestCase :: struct {
+        title: str;
+        expr: Expr;
+        expected: LoxObject;
+    }
+    tests := TestCase.[
+        .{
+            title="variable",
+            expr=Expr.{Variable=VariableExpr.{name=Token.{type=TokenType.IDENTIFIER, lexeme="foo"}}},
+            expected=LoxObject.{Number=1},
+        },
+    ];
+
+    for tt: tests {
+        interpreter := Interpreter.{};
+        // prepare: set value
+        interpreter.environment->define("foo", tt.expected);
+
+        actual := interpreter->evaluate(tt.expr)->expect(tprintf("{}: must not be error", tt.title));
+
+        assert(actual == tt.expected, tprintf("{}: \"{}\" != \"{}\"", tt.title, actual, tt.expected));
+    }
+}
+
 test_interpreter_evaluate_error :: () => {
     TestCase :: struct {
         title: str;
@@ -556,6 +581,7 @@ test_interpreter_stringify :: () {
 
 main :: () {
     test_interpreter_evaluate();
+    test_interpreter_evaluate_variable();
     test_interpreter_evaluate_error();
     test_interpreter_execute_error();
     test_interpreter_interpret_error();
