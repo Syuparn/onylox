@@ -29,10 +29,10 @@ setup() {
   assert_output "Operand must be two numbers or two strings."$'\n'"[line 1]"
 }
 
-# TODO: assert_output after evaluator is implemented
 @test "run a source file" {
   run onyx run main.onyx -- -- tests/testdata/src/hello.lox
   assert_success
+  assert_output "Hello, world!"
 }
 
 @test "file not found" {
