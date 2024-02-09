@@ -10,6 +10,7 @@ Expr :: union {
     Unary: UnaryExpr;
     Group: GroupExpr;
     Variable: VariableExpr;
+    Assign: AssignExpr;
 
     accept :: (expr: Expr, visitor: $T) -> Result(LoxObject, RuntimeError) where Visitor(T) {
         switch expr {
@@ -27,6 +28,9 @@ Expr :: union {
             }
             case e: .Variable {
                 return visitor->visit_variable_expr(e);
+            }
+            case e: .Assign {
+                return visitor->visit_assign_expr(e);
             }
         }
     }
@@ -56,10 +60,16 @@ VariableExpr :: struct {
     name: Token;
 }
 
+AssignExpr :: struct {
+    name: Token;
+    value: &Expr;
+}
+
 Visitor :: interface (t: $T) {
     { t->visit_literal_expr(LiteralExpr.{}) } -> Result(LoxObject, RuntimeError);
     { t->visit_binary_expr(BinaryExpr.{}) } -> Result(LoxObject, RuntimeError);
     { t->visit_unary_expr(UnaryExpr.{}) } -> Result(LoxObject, RuntimeError);
     { t->visit_group_expr(GroupExpr.{}) } -> Result(LoxObject, RuntimeError);
     { t->visit_variable_expr(VariableExpr.{}) } -> Result(LoxObject, RuntimeError);
+    { t->visit_assign_expr(AssignExpr.{}) } -> Result(LoxObject, RuntimeError);
 }

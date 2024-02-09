@@ -58,6 +58,29 @@ test_ast_printer :: () => {
             },
             expected="(var foo)",
         },
+        .{
+            expr=Expr.{
+                Assign=AssignExpr.{
+                    name=Token.{type=TokenType.IDENTIFIER, lexeme="foo", line=1},
+                    value=&Expr.{Literal=LiteralExpr.{value=TokenLiteral.{Number=123}}},
+                },
+            },
+            expected="(= foo 123.0000)",
+        },
+        .{
+            expr=Expr.{
+                Assign=AssignExpr.{
+                    name=Token.{type=TokenType.IDENTIFIER, lexeme="foo", line=1},
+                    value=&Expr.{
+                        Assign=AssignExpr.{
+                            name=Token.{type=TokenType.IDENTIFIER, lexeme="bar", line=1},
+                            value=&Expr.{Literal=LiteralExpr.{value=TokenLiteral.{Number=123}}},
+                        },
+                    },
+                },
+            },
+            expected="(= foo (= bar 123.0000))",
+        },
         // avoid null pointer dereference
         .{
             expr=Expr.{

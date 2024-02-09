@@ -34,3 +34,9 @@ setup() {
   assert_output "5"
   assert_success
 }
+
+@test "define assignment" {
+  run onyx run main.onyx -- -- tests/testdata/src/assign.lox
+  assert_output "2"$'\n'"3"
+  assert_success
+}

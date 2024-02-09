@@ -52,6 +52,12 @@ ASTPrinter :: struct {
         return .{Ok=LoxObject.{String=tprintf("(var {})", expr.name.lexeme)}};
     }
 
+    visit_assign_expr :: (p: ASTPrinter, expr: AssignExpr) -> Result(LoxObject, RuntimeError) {
+        obj := (*expr.value)->accept(p)->forward_err();
+        value := obj.String->unwrap();
+        return .{Ok=LoxObject.{String=tprintf("(= {} {})", expr.name.lexeme, value)}};
+    }
+
     parenthesize :: (p: ASTPrinter, name: str, exprs: ..&Expr) -> Result(LoxObject, RuntimeError) {
         // TODO: replace with initialize function
         buffer_memory := "                                                                                          ";

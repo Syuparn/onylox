@@ -244,6 +244,20 @@ test_parser_parse_expr :: () => {
                 name=Token.{type=TokenType.IDENTIFIER, lexeme="foo"},
             }},
         },
+        .{
+            title="parse assignment",
+            tokens=_to_list(Token.[
+                Token.{type=TokenType.IDENTIFIER, lexeme="foo"},
+                Token.{type=TokenType.EQUAL, lexeme="="},
+                Token.{type=TokenType.NUMBER, lexeme="2", literal=TokenLiteral.{Number=2}},
+                Token.{type=TokenType.SEMICOLON, lexeme=";"},
+                Token.{type=TokenType.EOF, lexeme=""},
+            ]),
+            expected=Expr.{Assign=AssignExpr.{
+                name=Token.{type=TokenType.IDENTIFIER, lexeme="foo"},
+                value=&Expr.{Literal=LiteralExpr.{value=TokenLiteral.{Number=2}}},
+            }},
+        },
     ];
 
     for tt: tests {
@@ -286,6 +300,18 @@ test_parser_parse_error :: () => {
                 Token.{type=TokenType.NUMBER, lexeme="1", literal=TokenLiteral.{Number=1}},
                 Token.{type=TokenType.GREATER, lexeme=">"},
                 Token.{type=TokenType.NUMBER, lexeme="2", literal=TokenLiteral.{Number=2}},
+                Token.{type=TokenType.SEMICOLON, lexeme=";"},
+                Token.{type=TokenType.EOF, lexeme=""},
+            ]),
+        },
+        .{
+            title="invalid assignment",
+            tokens=_to_list(Token.[
+                Token.{type=TokenType.IDENTIFIER, lexeme="a"},
+                Token.{type=TokenType.PLUS, lexeme="+"},
+                Token.{type=TokenType.IDENTIFIER, lexeme="b"},
+                Token.{type=TokenType.EQUAL, lexeme="="},
+                Token.{type=TokenType.NUMBER, lexeme="10", literal=TokenLiteral.{Number=10}},
                 Token.{type=TokenType.SEMICOLON, lexeme=";"},
                 Token.{type=TokenType.EOF, lexeme=""},
             ]),

@@ -20,4 +20,14 @@ Environment :: struct {
         // NOTE: this should be runtime error, otherwise functions cannot call each other
         return .{Err=RuntimeError.{token=name, message=tprintf("Undefined varible '{}'.", name.lexeme)}};
     }
+
+    // HACK: returned LoxObject is not used (it is only defined for forward_err() method)
+    assign :: (e: Environment, name: Token, value: LoxObject) -> Result(LoxObject, RuntimeError) {
+        if e.value->has(name.lexeme) {
+            e.value->put(name.lexeme, value);
+            return .{Ok=.{}};
+        }
+
+        return .{Err=RuntimeError.{token=name, message=tprintf("Undefined varible '{}'.", name.lexeme)}};
+    }
 }
