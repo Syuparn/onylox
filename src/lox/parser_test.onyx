@@ -1,17 +1,10 @@
 #load "./ast_printer"
 #load "./parser"
+#load "./util"
 
 use core { printf, tprintf }
 use core.iter
 use core.list
-
-_to_list :: (values: []$T) -> list.List(T) {
-    l := list.make(T);
-    for value: values {
-        l->push_end(value);
-    }
-    return l;
-}
 
 print_expr :: (expr: Expr) -> str {
     printer := ASTPrinter.{};
@@ -260,7 +253,6 @@ test_parser_parse_expr :: () => {
     }
 }
 
-
 test_parser_parse_error :: () => {
     TestCase :: struct {
         title: str;
@@ -277,8 +269,35 @@ test_parser_parse_error :: () => {
             ]),
         },
         .{
-            title="empty program",
+            title="no right paren (binary)",
             tokens=_to_list(Token.[
+                Token.{type=TokenType.LEFT_PAREN, lexeme="("},
+                Token.{type=TokenType.NUMBER, lexeme="1", literal=TokenLiteral.{Number=1}},
+                Token.{type=TokenType.GREATER, lexeme=">"},
+                Token.{type=TokenType.NUMBER, lexeme="2", literal=TokenLiteral.{Number=2}},
+                Token.{type=TokenType.SEMICOLON, lexeme=";"},
+                Token.{type=TokenType.EOF, lexeme=""},
+            ]),
+        },
+        .{
+            title="empty expression",
+            tokens=_to_list(Token.[
+                Token.{type=TokenType.SEMICOLON, lexeme=";"},
+                Token.{type=TokenType.EOF, lexeme=""},
+            ]),
+        },
+        .{
+            title="no semicolon in expressionstmt",
+            tokens=_to_list(Token.[
+                Token.{type=TokenType.NUMBER, lexeme="1", literal=TokenLiteral.{Number=1}},
+                Token.{type=TokenType.EOF, lexeme=""},
+            ]),
+        },
+        .{
+            title="no semicolon in printstmt",
+            tokens=_to_list(Token.[
+                Token.{type=TokenType.PRINT, lexeme="print"},
+                Token.{type=TokenType.NUMBER, lexeme="1", literal=TokenLiteral.{Number=1}},
                 Token.{type=TokenType.EOF, lexeme=""},
             ]),
         },
@@ -296,15 +315,16 @@ test_parser_parse_error :: () => {
     for tt: tests {
         parser := Parser.{tokens=tt.tokens};
 
+        printf("debug: {}\n", tt.title);
         actual := parser->parse();
         assert(had_error, tprintf("{}: error must be raised", tt.title));
 
         parser->free();
+
+        // NOTE: error must be reset for following tests!
+        had_error = false;
     }
 }
-
-// todo: stmt test (printstmt, empty stmt, multi stmt)
-// todo: stmt error test
 
 main :: () {
     test_parser_parse_expr();

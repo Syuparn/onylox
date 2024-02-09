@@ -134,7 +134,7 @@ Parser :: struct {
             expr := p->_expression()?;
 
             // NOTE: expr is not used but errors should be checked
-            p->_consume(TokenType.RIGHT_PAREN, "Expect ') after expression.")?;
+            p->_consume(TokenType.RIGHT_PAREN, "Expect ')' after expression.")?;
 
             // HACK: alloc expr, otherwise it is deleted after return
             return Expr.{Group=GroupExpr.{expression=p->_alloc_expr(expr)}};

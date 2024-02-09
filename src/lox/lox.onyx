@@ -76,11 +76,13 @@ Lox :: struct {
         tokens := scanner->scan_tokens();
 
         parser := &Parser.{tokens=tokens};
-        stmts := parser->parse()?;
+        // NOTE: ? cannot be used here, otherwise exit code is not set!
+        result := parser->parse();
 
         if had_error {
             return .{};
         }
+        stmts := result?;
 
         interpreter->interpret(&stmts);
     }

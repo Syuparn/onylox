@@ -17,7 +17,7 @@ setup() {
 
 @test "syntax error" {
   run wasmer run --mapdir tests:tests onylox.wasm -- tests/testdata/src/syntax_error.lox
-  assert_output "[line 2] Error at end: Expect ') after expression."
+  assert_output "[line 2] Error at end: Expect ')' after expression."
 }
 
 @test "runtime error" {

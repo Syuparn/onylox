@@ -1,0 +1,9 @@
+use core.list
+
+_to_list :: (values: []$T) -> list.List(T) {
+    l := list.make(T);
+    for value: values {
+        l->push_end(value);
+    }
+    return l;
+}

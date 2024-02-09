@@ -2,9 +2,11 @@
 #load "./interpreter"
 #load "./token"
 #load "./token_type"
+#load "./util"
 
-use core { tprintf }
+use core { printf, tprintf }
 use core.iter
+use core.list
 
 test_interpreter_evaluate :: () => {
     TestCase :: struct {
@@ -433,7 +435,83 @@ test_interpreter_evaluate_error :: () => {
     }
 }
 
-// todo: interpret program, stmts, stmt
+test_interpreter_execute_error :: () => {
+    TestCase :: struct {
+        title: str;
+        stmt: Stmt;
+        expected: RuntimeError;
+    }
+    tests := TestCase.[
+        .{
+            title="runtime error in expr",
+            stmt=Stmt.{Expression=ExpressionStmt.{
+                expression=Expr.{
+                    Unary=UnaryExpr.{
+                        operator=Token.{type=TokenType.MINUS, lexeme="-"},
+                        right=&Expr.{Literal=LiteralExpr.{value=TokenLiteral.{String="foo"}}},
+                    },
+                },
+            }},
+            expected=RuntimeError.{token=Token.{type=TokenType.MINUS, lexeme="-"}, message="Operand must be a number."},
+        },
+    ];
+
+    for tt: tests {
+        interpreter := Interpreter.{};
+        actual := interpreter->execute(tt.stmt);
+        assert(actual->is_err(), tprintf("{}: must be an error", tt.title));
+        e := actual->err()?;
+
+        assert(e.message == tt.expected.message, tprintf("{}: \"{}\" != \"{}\"", tt.title, e.message, tt.expected.message));
+        assert(e.token.type == tt.expected.token.type, tprintf("{}: \"{}\" != \"{}\"", tt.title, e.token.type, tt.expected.token.type));
+    }
+}
+
+test_interpreter_interpret_error :: () => {
+    TestCase :: struct {
+        title: str;
+        stmts: list.List(Stmt);
+    }
+    tests := TestCase.[
+        .{
+            title="runtime error in expr (-string)",
+            stmts=_to_list(Stmt.[
+                .{Expression=ExpressionStmt.{
+                    expression=Expr.{
+                        Unary=UnaryExpr.{
+                            operator=Token.{type=TokenType.MINUS, lexeme="-"},
+                            right=&Expr.{Literal=LiteralExpr.{value=TokenLiteral.{String="foo"}}},
+                        },
+                    },
+                }},
+            ]),
+        },
+        .{
+            title="runtime error in expr (string + number)",
+            stmts=_to_list(Stmt.[
+                .{Expression=ExpressionStmt.{
+                    expression=Expr.{
+                        Binary=BinaryExpr.{
+                            left=&Expr.{Literal=LiteralExpr.{value=TokenLiteral.{String="foo"}}},
+                            operator=Token.{type=TokenType.PLUS, lexeme="+"},
+                            right=&Expr.{Literal=LiteralExpr.{value=TokenLiteral.{Number=1}}},
+                        },
+                    },
+                }},
+            ]),
+        },
+    ];
+
+    for tt: tests {
+        interpreter := Interpreter.{};
+        printf("debug: {}\n", tt.title);
+        interpreter->interpret(&tt.stmts);
+        assert(had_runtime_error, tprintf("{}: had_runtime_error must be true", tt.title));
+
+        // NOTE: error must be reset for following tests!
+        had_runtime_error = false;
+    }
+}
 
 test_interpreter_stringify :: () {
     TestCase :: struct {
@@ -460,7 +538,7 @@ test_interpreter_stringify :: () {
         .{
             title="number (double)",
             obj=LoxObject.{Number=1.5},
-            expected="1.5",
+            expected="1.5000",
         },
         .{
             title="number (int)",
@@ -479,4 +557,7 @@ test_interpreter_stringify :: () {
 main :: () {
     test_interpreter_evaluate();
     test_interpreter_evaluate_error();
+    test_interpreter_execute_error();
+    test_interpreter_interpret_error();
+    test_interpreter_stringify();
 }

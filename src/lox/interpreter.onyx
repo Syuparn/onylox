@@ -166,7 +166,7 @@ Interpreter :: struct {
                 s := tprintf("{}", v);
                 // trim suffix .0000
                 if string.ends_with(s, ".0000") {
-                    return s[0..s.length-4];
+                    return s[0..s.length-5];
                 }
                 return s;
             }
