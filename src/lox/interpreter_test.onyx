@@ -435,6 +435,47 @@ test_interpreter_evaluate_error :: () => {
 
 // todo: interpret program, stmts, stmt
 
+test_interpreter_stringify :: () {
+    TestCase :: struct {
+        title: str;
+        obj: LoxObject;
+        expected: str;
+    }
+    tests := TestCase.[
+        .{
+            title="string",
+            obj=LoxObject.{String="foo"},
+            expected="foo",
+        },
+        .{
+            title="nil",
+            obj=LoxObject.{Null=.{}},
+            expected="nil",
+        },
+        .{
+            title="bool",
+            obj=LoxObject.{Bool=true},
+            expected="true",
+        },
+        .{
+            title="number (double)",
+            obj=LoxObject.{Number=1.5},
+            expected="1.5",
+        },
+        .{
+            title="number (int)",
+            obj=LoxObject.{Number=1},
+            expected="1",
+        },
+    ];
+
+    for tt: tests {
+        interpreter := Interpreter.{};
+        actual := interpreter->_stringify(tt.obj);
+        assert(actual == tt.expected, tprintf("{}: \"{}\" != \"{}\"", tt.title, actual, tt.expected));
+    }
+}
+
 main :: () {
     test_interpreter_evaluate();
     test_interpreter_evaluate_error();
