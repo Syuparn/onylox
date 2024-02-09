@@ -50,6 +50,14 @@ test_ast_printer :: () => {
             },
             expected="(- 123.0000)",
         },
+        .{
+            expr=Expr.{
+                Variable=VariableExpr.{
+                    name=Token.{type=TokenType.IDENTIFIER, lexeme="foo", line=1},
+                },
+            },
+            expected="(var foo)",
+        },
         // avoid null pointer dereference
         .{
             expr=Expr.{

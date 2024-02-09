@@ -48,6 +48,10 @@ ASTPrinter :: struct {
         }
     }
 
+    visit_variable_expr :: (p: ASTPrinter, expr: VariableExpr) -> Result(LoxObject, RuntimeError) {
+        return .{Ok=LoxObject.{String=tprintf("(var {})", expr.name.lexeme)}};
+    }
+
     parenthesize :: (p: ASTPrinter, name: str, exprs: ..&Expr) -> Result(LoxObject, RuntimeError) {
         // TODO: replace with initialize function
         buffer_memory := "                                                                                          ";

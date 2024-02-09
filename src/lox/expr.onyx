@@ -9,6 +9,7 @@ Expr :: union {
     Binary: BinaryExpr;
     Unary: UnaryExpr;
     Group: GroupExpr;
+    Variable: VariableExpr;
 
     accept :: (expr: Expr, visitor: $T) -> Result(LoxObject, RuntimeError) where Visitor(T) {
         switch expr {
@@ -23,6 +24,9 @@ Expr :: union {
             }
             case e: .Group {
                 return visitor->visit_group_expr(e);
+            }
+            case e: .Variable {
+                return visitor->visit_variable_expr(e);
             }
         }
     }
@@ -48,9 +52,14 @@ GroupExpr :: struct {
     expression: &Expr;
 }
 
+VariableExpr :: struct {
+    name: Token;
+}
+
 Visitor :: interface (t: $T) {
     { t->visit_literal_expr(LiteralExpr.{}) } -> Result(LoxObject, RuntimeError);
     { t->visit_binary_expr(BinaryExpr.{}) } -> Result(LoxObject, RuntimeError);
     { t->visit_unary_expr(UnaryExpr.{}) } -> Result(LoxObject, RuntimeError);
     { t->visit_group_expr(GroupExpr.{}) } -> Result(LoxObject, RuntimeError);
+    { t->visit_variable_expr(VariableExpr.{}) } -> Result(LoxObject, RuntimeError);
 }

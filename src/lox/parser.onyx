@@ -21,7 +21,7 @@ Parser :: struct {
     parse :: (p: &Parser) -> ? list.List(Stmt) {
         statements := list.make(Stmt);
         while !p->_is_at_end() {
-            statements->push_end(p->_statement()?);
+            statements->push_end(p->_declaration()?);
         }
 
         return statements;
@@ -29,6 +29,31 @@ Parser :: struct {
 
     free :: (p: &Parser) {
         p.pool->free();
+    }
+
+    _declaration :: (p: &Parser) -> ? Stmt {
+        if p->_match(TokenType.VAR) {
+            return p->_var_declaration()->catch([] {
+                p->_synchronize();
+            });
+        }
+
+        return p->_statement()->catch([] {
+            p->_synchronize();
+        });
+    }
+
+    _var_declaration :: (p: &Parser) -> ? Stmt {
+        name := p->_consume(TokenType.IDENTIFIER, "Expect variable name.")?;
+
+        // NOTE: variable has null at first
+        initializer := Expr.{Literal=LiteralExpr.{value=TokenLiteral.{Null=.{}}}};
+        if p->_match(TokenType.EQUAL) {
+            initializer = p->_expression()?;
+        }
+
+        p->_consume(TokenType.SEMICOLON, "Expect ';' after variable declaration.")?;
+        return Stmt.{Var=VarStmt.{name=name, initializer=initializer}};
     }
 
     _statement :: (p: &Parser) -> ? Stmt {
@@ -128,6 +153,10 @@ Parser :: struct {
 
         if p->_match(TokenType.NUMBER, TokenType.STRING) {
             return Expr.{Literal=LiteralExpr.{value=p->_previous().literal}};
+        }
+
+        if p->_match(TokenType.IDENTIFIER) {
+            return Expr.{Variable=VariableExpr.{name=p->_previous()}};
         }
 
         if p->_match(TokenType.LEFT_PAREN) {

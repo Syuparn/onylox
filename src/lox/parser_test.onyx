@@ -233,6 +233,17 @@ test_parser_parse_expr :: () => {
                 }},
             }},
         },
+        .{
+            title="parse variable",
+            tokens=_to_list(Token.[
+                Token.{type=TokenType.IDENTIFIER, lexeme="foo"},
+                Token.{type=TokenType.SEMICOLON, lexeme=";"},
+                Token.{type=TokenType.EOF, lexeme=""},
+            ]),
+            expected=Expr.{Variable=VariableExpr.{
+                name=Token.{type=TokenType.IDENTIFIER, lexeme="foo"},
+            }},
+        },
     ];
 
     for tt: tests {
@@ -307,6 +318,23 @@ test_parser_parse_error :: () => {
                 Token.{type=TokenType.NUMBER, lexeme="1", literal=TokenLiteral.{Number=1}},
                 Token.{type=TokenType.PLUS, lexeme="+"},
                 Token.{type=TokenType.SEMICOLON, lexeme=";"},
+                Token.{type=TokenType.EOF, lexeme=""},
+            ]),
+        },
+        .{
+            title="var with non-identifier",
+            tokens=_to_list(Token.[
+                Token.{type=TokenType.VAR, lexeme="var"},
+                Token.{type=TokenType.NUMBER, lexeme="1", literal=TokenLiteral.{Number=1}},
+                Token.{type=TokenType.SEMICOLON, lexeme=";"},
+                Token.{type=TokenType.EOF, lexeme=""},
+            ]),
+        },
+        .{
+            title="no semicolon in varstmt",
+            tokens=_to_list(Token.[
+                Token.{type=TokenType.VAR, lexeme="var"},
+                Token.{type=TokenType.IDENTIFIER, lexeme="foo"},
                 Token.{type=TokenType.EOF, lexeme=""},
             ]),
         },

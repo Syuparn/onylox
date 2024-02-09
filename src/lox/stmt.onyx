@@ -1,8 +1,11 @@
+#load "./token"
+
 use core { Result }
 
 Stmt :: union {
     Expression: ExpressionStmt;
     Print: PrintStmt;
+    Var: VarStmt;
 
     accept :: (stmt: Stmt, visitor: $T) -> Result(void, RuntimeError) where StmtVisitor(T) {
         switch stmt {
@@ -11,6 +14,9 @@ Stmt :: union {
             }
             case s: .Print {
                 return visitor->visit_print_stmt(s);
+            }
+            case s: .Var {
+                return visitor->visit_var_stmt(s);
             }
         }
     }
@@ -24,7 +30,13 @@ PrintStmt :: struct {
     expression: Expr;
 }
 
+VarStmt :: struct {
+    name: Token;
+    initializer: Expr;
+}
+
 StmtVisitor :: interface (t: $T) {
     { t->visit_expression_stmt(ExpressionStmt.{}) } -> Result(void, RuntimeError);
     { t->visit_print_stmt(PrintStmt.{}) } -> Result(void, RuntimeError);
+    { t->visit_var_stmt(VarStmt.{}) } -> Result(void, RuntimeError);
 }

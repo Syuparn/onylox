@@ -53,6 +53,10 @@ Interpreter :: struct {
         return .{Ok=.{}};
     }
 
+    visit_var_stmt :: (interpreter: Interpreter, stmt: VarStmt) -> Result(void, RuntimeError) {
+        return .{Err=RuntimeError.{message="TODO: impl"}};
+    }
+
     visit_literal_expr :: (interpreter: Interpreter, expr: LiteralExpr) -> Result(LoxObject, RuntimeError) {
         switch expr.value {
             case s: .String {
@@ -155,6 +159,10 @@ Interpreter :: struct {
         }
 
         return .{Err=RuntimeError.{token=expr.operator, message="Unreachable (should be onylox bug)."}};
+    }
+
+    visit_variable_expr :: (interpreter: Interpreter, expr: VariableExpr) -> Result(LoxObject, RuntimeError) {
+        return .{Err=RuntimeError.{message="TODO: impl"}};
     }
 
     _stringify :: (interpreter: Interpreter, obj: LoxObject) -> str {
