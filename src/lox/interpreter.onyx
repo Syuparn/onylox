@@ -2,24 +2,55 @@
 #load "./lox"
 #load "./object"
 #load "./runtime_error"
+#load "./stmt"
 
 use core
-use core { printf, Result, tprintf }
+use core { printf, println, Result, tprintf }
+use core.list
+use core.string
 
 Interpreter :: struct {
     // HACK: receiver must have non-void fields, otherwise the error `Function parameters cannot have 'void' as their type.` is raised
     _dummy: bool;
 
-    interpret :: (interpreter: Interpreter, expr: Expr) => {
-        result := interpreter->evaluate(expr);
-        if result->is_err() {
-            err := result->err()?;
-            Lox.runtime_error(err.token, err.message);
+    interpret :: (interpreter: Interpreter, stmts: &list.List(Stmt)) => {
+        for stmt: stmts->as_iter() {
+            result := interpreter->execute(stmt);
+            if result->is_err() {
+                err := result->err()?;
+                Lox.runtime_error(err.token, err.message);
+                return .{};
+            }
         }
+    }
+
+    execute :: (interpreter: Interpreter, stmt: Stmt) -> Result(void, RuntimeError) {
+        return stmt->accept(interpreter);
     }
 
     evaluate :: (interpreter: Interpreter, expr: Expr) -> Result(LoxObject, RuntimeError) {
         return expr->accept(interpreter);
+    }
+
+    visit_expression_stmt :: (interpreter: Interpreter, stmt: ExpressionStmt) -> Result(void, RuntimeError) {
+        result := interpreter->evaluate(stmt.expression);
+        // NOTE: forward_err cannot be used because returned type is different
+        if result->is_err() {
+            return .{Err=result->err()?};
+        }
+        return .{Ok=.{}};
+    }
+
+    visit_print_stmt :: (interpreter: Interpreter, stmt: PrintStmt) -> Result(void, RuntimeError) {
+        result := interpreter->evaluate(stmt.expression);
+        // NOTE: forward_err cannot be used because returned type is different
+        if result->is_err() {
+            return .{Err=result->err()?};
+        }
+        value := result->ok()?;
+
+        println(interpreter->_stringify(value));
+        return .{Ok=.{}};
     }
 
     visit_literal_expr :: (interpreter: Interpreter, expr: LiteralExpr) -> Result(LoxObject, RuntimeError) {
@@ -124,6 +155,28 @@ Interpreter :: struct {
         }
 
         return .{Err=RuntimeError.{token=expr.operator, message="Unreachable (should be onylox bug)."}};
+    }
+
+    _stringify :: (interpreter: Interpreter, obj: LoxObject) -> str {
+        switch obj {
+            case .Null {
+                return "nil";
+            }
+            case v: .Number {
+                s := tprintf("{}", v);
+                // trim suffix .0000
+                if string.ends_with(s, ".0000") {
+                    return s[0..s.length-4];
+                }
+                return s;
+            }
+            case b: .Bool {
+                return tprintf("{}", b);
+            }
+            case s: .String {
+                return s;
+            }
+        }
     }
 
     _is_truthy :: (interpreter: Interpreter, obj: LoxObject) -> bool {

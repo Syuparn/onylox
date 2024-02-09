@@ -1,6 +1,7 @@
 #load "./expr"
 #load "./lox"
-#load "./object"
+#load "./expr"
+#load "./stmt"
 #load "./token"
 #load "./token_type"
 
@@ -17,12 +18,36 @@ Parser :: struct {
     // HACK: alloc expr pointers for binary/unary exprs, otherwise they are deleted after return
     pool: PoolAllocator = new_pool_allocator();
 
-    parse :: (p: &Parser) -> ? Expr {
-        return p->_expression();
+    parse :: (p: &Parser) -> ? list.List(Stmt) {
+        statements := list.make(Stmt);
+        while !p->_is_at_end() {
+            statements->push_end(p->_statement()?);
+        }
+
+        return statements;
     }
 
     free :: (p: &Parser) {
         p.pool->free();
+    }
+
+    _statement :: (p: &Parser) -> ? Stmt {
+        if p->_match(TokenType.PRINT) {
+            return p->_print_statement();
+        }
+        return p->_expression_statement();
+    }
+
+    _print_statement :: (p: &Parser) -> ? Stmt {
+        value := p->_expression()?;
+        p->_consume(TokenType.SEMICOLON, "Expect ';' after expression.")?;
+        return Stmt.{Print=PrintStmt.{expression=value}};
+    }
+
+    _expression_statement :: (p: &Parser) -> ? Stmt {
+        value := p->_expression()?;
+        p->_consume(TokenType.SEMICOLON, "Expect ';' after expression.")?;
+        return Stmt.{Expression=ExpressionStmt.{expression=value}};
     }
 
     _expression :: (p: &Parser) -> ? Expr {

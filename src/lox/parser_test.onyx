@@ -19,10 +19,11 @@ print_expr :: (expr: Expr) -> str {
     return obj.String?;
 }
 
-test_parser_parse :: () => {
+test_parser_parse_expr :: () => {
     TestCase :: struct {
         title: str;
         tokens: list.List(Token);
+        // HACK: to make test simple, define only an expr in the first statement
         expected: Expr;
     }
     tests := TestCase.[
@@ -30,6 +31,7 @@ test_parser_parse :: () => {
             title="parse number literal",
             tokens=_to_list(Token.[
                 Token.{type=TokenType.NUMBER, lexeme="123", literal=TokenLiteral.{Number=123}},
+                Token.{type=TokenType.SEMICOLON, lexeme=";"},
                 Token.{type=TokenType.EOF, lexeme=""},
             ]),
             expected=Expr.{Literal=LiteralExpr.{value=TokenLiteral.{Number=123}}},
@@ -38,6 +40,7 @@ test_parser_parse :: () => {
             title="parse string literal",
             tokens=_to_list(Token.[
                 Token.{type=TokenType.STRING, lexeme="\"foo\"", literal=TokenLiteral.{String="foo"}},
+                Token.{type=TokenType.SEMICOLON, lexeme=";"},
                 Token.{type=TokenType.EOF, lexeme=""},
             ]),
             expected=Expr.{Literal=LiteralExpr.{value=TokenLiteral.{String="foo"}}},
@@ -46,6 +49,7 @@ test_parser_parse :: () => {
             title="parse true literal",
             tokens=_to_list(Token.[
                 Token.{type=TokenType.TRUE, lexeme="true", literal=TokenLiteral.{Bool=true}},
+                Token.{type=TokenType.SEMICOLON, lexeme=";"},
                 Token.{type=TokenType.EOF, lexeme=""},
             ]),
             expected=Expr.{Literal=LiteralExpr.{value=TokenLiteral.{Bool=true}}},
@@ -54,6 +58,7 @@ test_parser_parse :: () => {
             title="parse false literal",
             tokens=_to_list(Token.[
                 Token.{type=TokenType.FALSE, lexeme="false", literal=TokenLiteral.{Bool=false}},
+                Token.{type=TokenType.SEMICOLON, lexeme=";"},
                 Token.{type=TokenType.EOF, lexeme=""},
             ]),
             expected=Expr.{Literal=LiteralExpr.{value=TokenLiteral.{Bool=false}}},
@@ -62,6 +67,7 @@ test_parser_parse :: () => {
             title="parse nil literal",
             tokens=_to_list(Token.[
                 Token.{type=TokenType.NIL, lexeme="nil", literal=TokenLiteral.{Null=.{}}},
+                Token.{type=TokenType.SEMICOLON, lexeme=";"},
                 Token.{type=TokenType.EOF, lexeme=""},
             ]),
             expected=Expr.{Literal=LiteralExpr.{value=TokenLiteral.{Null=.{}}}},
@@ -72,6 +78,7 @@ test_parser_parse :: () => {
                 Token.{type=TokenType.LEFT_PAREN, lexeme="("},
                 Token.{type=TokenType.NIL, lexeme="nil", literal=TokenLiteral.{Null=.{}}},
                 Token.{type=TokenType.RIGHT_PAREN, lexeme=")"},
+                Token.{type=TokenType.SEMICOLON, lexeme=";"},
                 Token.{type=TokenType.EOF, lexeme=""},
             ]),
             expected=Expr.{Group=GroupExpr.{
@@ -83,6 +90,7 @@ test_parser_parse :: () => {
             tokens=_to_list(Token.[
                 Token.{type=TokenType.MINUS, lexeme="-"},
                 Token.{type=TokenType.NUMBER, lexeme="123", literal=TokenLiteral.{Number=123}},
+                Token.{type=TokenType.SEMICOLON, lexeme=";"},
                 Token.{type=TokenType.EOF, lexeme=""},
             ]),
             expected=Expr.{Unary=UnaryExpr.{
@@ -96,6 +104,7 @@ test_parser_parse :: () => {
                 Token.{type=TokenType.NUMBER, lexeme="123", literal=TokenLiteral.{Number=123}},
                 Token.{type=TokenType.STAR, lexeme="*"},
                 Token.{type=TokenType.NUMBER, lexeme="456", literal=TokenLiteral.{Number=456}},
+                Token.{type=TokenType.SEMICOLON, lexeme=";"},
                 Token.{type=TokenType.EOF, lexeme=""},
             ]),
             expected=Expr.{Binary=BinaryExpr.{
@@ -110,6 +119,7 @@ test_parser_parse :: () => {
                 Token.{type=TokenType.NUMBER, lexeme="123", literal=TokenLiteral.{Number=123}},
                 Token.{type=TokenType.MINUS, lexeme="-"},
                 Token.{type=TokenType.NUMBER, lexeme="456", literal=TokenLiteral.{Number=456}},
+                Token.{type=TokenType.SEMICOLON, lexeme=";"},
                 Token.{type=TokenType.EOF, lexeme=""},
             ]),
             expected=Expr.{Binary=BinaryExpr.{
@@ -124,6 +134,7 @@ test_parser_parse :: () => {
                 Token.{type=TokenType.NUMBER, lexeme="123", literal=TokenLiteral.{Number=123}},
                 Token.{type=TokenType.LESS_EQUAL, lexeme="<="},
                 Token.{type=TokenType.NUMBER, lexeme="456", literal=TokenLiteral.{Number=456}},
+                Token.{type=TokenType.SEMICOLON, lexeme=";"},
                 Token.{type=TokenType.EOF, lexeme=""},
             ]),
             expected=Expr.{Binary=BinaryExpr.{
@@ -138,6 +149,7 @@ test_parser_parse :: () => {
                 Token.{type=TokenType.NUMBER, lexeme="123", literal=TokenLiteral.{Number=123}},
                 Token.{type=TokenType.EQUAL_EQUAL, lexeme="=="},
                 Token.{type=TokenType.NUMBER, lexeme="456", literal=TokenLiteral.{Number=456}},
+                Token.{type=TokenType.SEMICOLON, lexeme=";"},
                 Token.{type=TokenType.EOF, lexeme=""},
             ]),
             expected=Expr.{Binary=BinaryExpr.{
@@ -153,6 +165,7 @@ test_parser_parse :: () => {
                 Token.{type=TokenType.STAR, lexeme="*"},
                 Token.{type=TokenType.MINUS, lexeme="-"},
                 Token.{type=TokenType.NUMBER, lexeme="456", literal=TokenLiteral.{Number=456}},
+                Token.{type=TokenType.SEMICOLON, lexeme=";"},
                 Token.{type=TokenType.EOF, lexeme=""},
             ]),
             expected=Expr.{Binary=BinaryExpr.{
@@ -172,6 +185,7 @@ test_parser_parse :: () => {
                 Token.{type=TokenType.NUMBER, lexeme="2", literal=TokenLiteral.{Number=2}},
                 Token.{type=TokenType.STAR, lexeme="*"},
                 Token.{type=TokenType.NUMBER, lexeme="3", literal=TokenLiteral.{Number=3}},
+                Token.{type=TokenType.SEMICOLON, lexeme=";"},
                 Token.{type=TokenType.EOF, lexeme=""},
             ]),
             expected=Expr.{Binary=BinaryExpr.{
@@ -192,6 +206,7 @@ test_parser_parse :: () => {
                 Token.{type=TokenType.NUMBER, lexeme="2", literal=TokenLiteral.{Number=2}},
                 Token.{type=TokenType.PLUS, lexeme="+"},
                 Token.{type=TokenType.NUMBER, lexeme="3", literal=TokenLiteral.{Number=3}},
+                Token.{type=TokenType.SEMICOLON, lexeme=";"},
                 Token.{type=TokenType.EOF, lexeme=""},
             ]),
             expected=Expr.{Binary=BinaryExpr.{
@@ -212,6 +227,7 @@ test_parser_parse :: () => {
                 Token.{type=TokenType.NUMBER, lexeme="2", literal=TokenLiteral.{Number=2}},
                 Token.{type=TokenType.GREATER, lexeme=">"},
                 Token.{type=TokenType.NUMBER, lexeme="3", literal=TokenLiteral.{Number=3}},
+                Token.{type=TokenType.SEMICOLON, lexeme=";"},
                 Token.{type=TokenType.EOF, lexeme=""},
             ]),
             expected=Expr.{Binary=BinaryExpr.{
@@ -228,8 +244,11 @@ test_parser_parse :: () => {
 
     for tt: tests {
         parser := Parser.{tokens=tt.tokens};
+        ast := parser->parse()->expect(tprintf("{}: expr must not be empty", tt.title));
 
-        actual := parser->parse()->expect(tprintf("{}: expr must not be empty", tt.title));
+        assert(ast->count() == 1, tprintf("{}: length: {} != 1", tt.title, ast->count()));
+        stmt := ast->at(0);
+        actual := stmt.Expression->expect(tprintf("{}: stmt must be ExpressionStmt: {}", tt.title, stmt)).expression;
 
         // HACK: converted to string because == is not defined for Expr
         assert(
@@ -253,6 +272,7 @@ test_parser_parse_error :: () => {
             tokens=_to_list(Token.[
                 Token.{type=TokenType.LEFT_PAREN, lexeme="("},
                 Token.{type=TokenType.NUMBER, lexeme="1", literal=TokenLiteral.{Number=1}},
+                Token.{type=TokenType.SEMICOLON, lexeme=";"},
                 Token.{type=TokenType.EOF, lexeme=""},
             ]),
         },
@@ -267,6 +287,7 @@ test_parser_parse_error :: () => {
             tokens=_to_list(Token.[
                 Token.{type=TokenType.NUMBER, lexeme="1", literal=TokenLiteral.{Number=1}},
                 Token.{type=TokenType.PLUS, lexeme="+"},
+                Token.{type=TokenType.SEMICOLON, lexeme=";"},
                 Token.{type=TokenType.EOF, lexeme=""},
             ]),
         },
@@ -276,21 +297,16 @@ test_parser_parse_error :: () => {
         parser := Parser.{tokens=tt.tokens};
 
         actual := parser->parse();
-
-        switch actual {
-            case e: .Some {
-                assert(false, tprintf("{} must be None", print_expr(e)));
-            }
-            case #default ---
-        }
-
-        assert(had_error, "error must be raised");
+        assert(had_error, tprintf("{}: error must be raised", tt.title));
 
         parser->free();
     }
 }
 
+// todo: stmt test (printstmt, empty stmt, multi stmt)
+// todo: stmt error test
+
 main :: () {
-    test_parser_parse();
+    test_parser_parse_expr();
     test_parser_parse_error();
 }

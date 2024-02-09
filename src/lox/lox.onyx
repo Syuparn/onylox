@@ -76,13 +76,13 @@ Lox :: struct {
         tokens := scanner->scan_tokens();
 
         parser := &Parser.{tokens=tokens};
-        expr := parser->parse()?;
+        stmts := parser->parse()?;
 
         if had_error {
             return .{};
         }
 
-        interpreter->interpret(expr);
+        interpreter->interpret(&stmts);
     }
 
     error :: #match {
