@@ -112,7 +112,7 @@ test_get :: () => {
             expected=.{Ok=LoxObject.{String="inner"}},
         },
         .{
-            title="shadowing",
+            title="undefined",
             token=Token.{type=TokenType.IDENTIFIER, lexeme="bar"},
             env=Environment.{
                 enclosing=&Environment.{
@@ -125,6 +125,44 @@ test_get :: () => {
                 ]),
             },
             expected=.{Err=RuntimeError.{message="Undefined varible 'bar'.", token=Token.{type=TokenType.IDENTIFIER, lexeme="bar"}}},
+        },
+        .{
+            title="shadowing (nested)",
+            token=Token.{type=TokenType.IDENTIFIER, lexeme="foo"},
+            env=Environment.{
+                enclosing=&Environment.{
+                    enclosing=&Environment.{
+                        value=map.literal(str, LoxObject, .[
+                            .{"foo", LoxObject.{String="global"}},
+                        ]),
+                    },
+                    value=map.literal(str, LoxObject, .[
+                        .{"foo", LoxObject.{String="outer"}},
+                    ]),
+                },
+                value=map.literal(str, LoxObject, .[
+                    .{"foo", LoxObject.{String="inner"}},
+                ]),
+            },
+            expected=.{Ok=LoxObject.{String="inner"}},
+        },
+        .{
+            title="get from outer env (nested)",
+            token=Token.{type=TokenType.IDENTIFIER, lexeme="foo"},
+            env=Environment.{
+                enclosing=&Environment.{
+                    enclosing=&Environment.{
+                        value=map.literal(str, LoxObject, .[
+                            .{"foo", LoxObject.{String="global"}},
+                        ]),
+                    },
+                    value=map.literal(str, LoxObject, .[
+                        .{"foo", LoxObject.{String="outer"}},
+                    ]),
+                },
+                value=map.literal(str, LoxObject, .[]),
+            },
+            expected=.{Ok=LoxObject.{String="outer"}},
         },
     ];
 

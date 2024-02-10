@@ -65,6 +65,9 @@ Parser :: struct {
         if p->_match(TokenType.PRINT) {
             return p->_print_statement();
         }
+        if p->_match(TokenType.LEFT_BRACE) {
+            return Stmt.{Block=BlockStmt.{statements=p->_block()?}};
+        }
         return p->_expression_statement();
     }
 
@@ -78,6 +81,19 @@ Parser :: struct {
         value := p->_expression()?;
         p->_consume(TokenType.SEMICOLON, "Expect ';' after expression.")?;
         return Stmt.{Expression=ExpressionStmt.{expression=value}};
+    }
+
+    _block :: (p: &Parser) -> ? list.List(&Stmt) {
+        statements := list.make(&Stmt);
+        while !p->_check(TokenType.RIGHT_BRACE) && !p->_is_at_end() {
+            stmt := p->_declaration()?;
+            // HACK: alloc stmt, otherwise it is deleted after return
+            stmt_ptr := p->_alloc_stmt(stmt); // NOTE: move does not work with reassigning...
+            statements->push_end(stmt_ptr);
+        }
+
+        p->_consume(TokenType.RIGHT_BRACE, "Expect '}' after block.")?;
+        return statements;
     }
 
     _expression :: (p: &Parser) -> ? Expr {
@@ -292,6 +308,10 @@ Parser :: struct {
 
     _alloc_expr :: macro (p: &Parser, expr: Expr) -> &Expr {
         return p.pool.allocator->move(expr);
+    }
+
+    _alloc_stmt :: macro (p: &Parser, stmt: Stmt) -> &Stmt {
+        return p.pool.allocator->move(stmt);
     }
 }
 

@@ -39,3 +39,15 @@ setup() {
   assert_output "2"$'\n'"3"
   assert_success
 }
+
+@test "block statement" {
+  run wasmer run --mapdir tests:tests onylox.wasm -- tests/testdata/src/block.lox
+  assert_output "hello"
+  assert_success
+}
+
+@test "block scopes" {
+  run wasmer run --mapdir tests:tests onylox.wasm -- tests/testdata/src/scope.lox
+  assert_output "inner a"$'\n'"outer b"$'\n'"global c"$'\n'"outer a"$'\n'"outer b"$'\n'"global c"$'\n'"global a"$'\n'"global b"$'\n'"global c"
+  assert_success
+}

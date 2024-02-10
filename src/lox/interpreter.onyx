@@ -29,6 +29,25 @@ Interpreter :: struct {
         return stmt->accept(interpreter);
     }
 
+    _execute_block :: (interpreter: &Interpreter, statements: list.List(&Stmt), environment: Environment) -> Result(void, RuntimeError) {
+        previous := interpreter.environment;
+        defer interpreter.environment = previous;
+
+        interpreter.environment = environment;
+
+        // NOTE: List#as_iter and List#count cannot be called from List($T) due to type mismatch
+        for i: 0 .. list_count(&Stmt, statements) {
+            stmts := statements;
+            statement := *((&stmts)->at(i));
+            result := interpreter->execute(*statement);
+            if result->is_err() {
+                return result;
+            }
+        }
+
+        return .{Ok=.{}};
+    }
+
     evaluate :: (interpreter: &Interpreter, expr: Expr) -> Result(LoxObject, RuntimeError) {
         return expr->accept(interpreter);
     }
@@ -62,6 +81,12 @@ Interpreter :: struct {
 
         interpreter.environment->define(stmt.name.lexeme, value);
         return .{Ok=.{}};
+    }
+
+    visit_block_stmt :: (interpreter: &Interpreter, stmt: BlockStmt) -> Result(void, RuntimeError) {
+        // TODO: free unused environment
+        env_ptr := context.allocator->move(interpreter.environment);
+        return interpreter->_execute_block(stmt.statements, Environment.{enclosing=env_ptr});
     }
 
     visit_assign_expr :: (interpreter: &Interpreter, expr: AssignExpr) -> Result(LoxObject, RuntimeError) {

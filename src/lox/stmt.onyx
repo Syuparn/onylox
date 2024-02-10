@@ -1,11 +1,13 @@
 #load "./token"
 
 use core { Result }
+use core.list
 
 Stmt :: union {
     Expression: ExpressionStmt;
     Print: PrintStmt;
     Var: VarStmt;
+    Block: BlockStmt;
 
     accept :: (stmt: Stmt, visitor: $T) -> Result(void, RuntimeError) where StmtVisitor(T) {
         switch stmt {
@@ -17,6 +19,9 @@ Stmt :: union {
             }
             case s: .Var {
                 return visitor->visit_var_stmt(s);
+            }
+            case s: .Block {
+                return visitor->visit_block_stmt(s);
             }
         }
     }
@@ -35,8 +40,14 @@ VarStmt :: struct {
     initializer: ?Expr;
 }
 
+BlockStmt :: struct {
+    // NOTE: this cannot have list.List(Stmt) due to circular definement
+    statements: list.List(&Stmt);
+}
+
 StmtVisitor :: interface (t: $T) {
     { t->visit_expression_stmt(ExpressionStmt.{}) } -> Result(void, RuntimeError);
     { t->visit_print_stmt(PrintStmt.{}) } -> Result(void, RuntimeError);
     { t->visit_var_stmt(VarStmt.{}) } -> Result(void, RuntimeError);
+    { t->visit_block_stmt(BlockStmt.{}) } -> Result(void, RuntimeError);
 }

@@ -517,6 +517,22 @@ test_interpreter_execute_error :: () => {
             }},
             expected=RuntimeError.{token=Token.{type=TokenType.MINUS, lexeme="-"}, message="Operand must be a number."},
         },
+        .{
+            title="runtime error in block",
+            stmt=Stmt.{Block=BlockStmt.{
+                statements=to_pointer_list(Stmt.[
+                    .{Expression=ExpressionStmt.{
+                        expression=Expr.{
+                            Unary=UnaryExpr.{
+                                operator=Token.{type=TokenType.MINUS, lexeme="-"},
+                                right=&Expr.{Literal=LiteralExpr.{value=TokenLiteral.{String="foo"}}},
+                            },
+                        },
+                    }},
+                ]),
+            }},
+            expected=RuntimeError.{token=Token.{type=TokenType.MINUS, lexeme="-"}, message="Operand must be a number."},
+        },
     ];
 
     for tt: tests {
@@ -538,7 +554,7 @@ test_interpreter_interpret_error :: () => {
     tests := TestCase.[
         .{
             title="runtime error in expr (-string)",
-            stmts=_to_list(Stmt.[
+            stmts=to_list(Stmt.[
                 .{Expression=ExpressionStmt.{
                     expression=Expr.{
                         Unary=UnaryExpr.{
@@ -551,7 +567,7 @@ test_interpreter_interpret_error :: () => {
         },
         .{
             title="runtime error in expr (string + number)",
-            stmts=_to_list(Stmt.[
+            stmts=to_list(Stmt.[
                 .{Expression=ExpressionStmt.{
                     expression=Expr.{
                         Binary=BinaryExpr.{

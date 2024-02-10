@@ -22,7 +22,7 @@ test_parser_parse_expr :: () => {
     tests := TestCase.[
         .{
             title="parse number literal",
-            tokens=_to_list(Token.[
+            tokens=to_list(Token.[
                 Token.{type=TokenType.NUMBER, lexeme="123", literal=TokenLiteral.{Number=123}},
                 Token.{type=TokenType.SEMICOLON, lexeme=";"},
                 Token.{type=TokenType.EOF, lexeme=""},
@@ -31,7 +31,7 @@ test_parser_parse_expr :: () => {
         },
         .{
             title="parse string literal",
-            tokens=_to_list(Token.[
+            tokens=to_list(Token.[
                 Token.{type=TokenType.STRING, lexeme="\"foo\"", literal=TokenLiteral.{String="foo"}},
                 Token.{type=TokenType.SEMICOLON, lexeme=";"},
                 Token.{type=TokenType.EOF, lexeme=""},
@@ -40,7 +40,7 @@ test_parser_parse_expr :: () => {
         },
         .{
             title="parse true literal",
-            tokens=_to_list(Token.[
+            tokens=to_list(Token.[
                 Token.{type=TokenType.TRUE, lexeme="true", literal=TokenLiteral.{Bool=true}},
                 Token.{type=TokenType.SEMICOLON, lexeme=";"},
                 Token.{type=TokenType.EOF, lexeme=""},
@@ -49,7 +49,7 @@ test_parser_parse_expr :: () => {
         },
         .{
             title="parse false literal",
-            tokens=_to_list(Token.[
+            tokens=to_list(Token.[
                 Token.{type=TokenType.FALSE, lexeme="false", literal=TokenLiteral.{Bool=false}},
                 Token.{type=TokenType.SEMICOLON, lexeme=";"},
                 Token.{type=TokenType.EOF, lexeme=""},
@@ -58,7 +58,7 @@ test_parser_parse_expr :: () => {
         },
         .{
             title="parse nil literal",
-            tokens=_to_list(Token.[
+            tokens=to_list(Token.[
                 Token.{type=TokenType.NIL, lexeme="nil", literal=TokenLiteral.{Null=.{}}},
                 Token.{type=TokenType.SEMICOLON, lexeme=";"},
                 Token.{type=TokenType.EOF, lexeme=""},
@@ -67,7 +67,7 @@ test_parser_parse_expr :: () => {
         },
         .{
             title="parse group",
-            tokens=_to_list(Token.[
+            tokens=to_list(Token.[
                 Token.{type=TokenType.LEFT_PAREN, lexeme="("},
                 Token.{type=TokenType.NIL, lexeme="nil", literal=TokenLiteral.{Null=.{}}},
                 Token.{type=TokenType.RIGHT_PAREN, lexeme=")"},
@@ -80,7 +80,7 @@ test_parser_parse_expr :: () => {
         },
         .{
             title="parse unary",
-            tokens=_to_list(Token.[
+            tokens=to_list(Token.[
                 Token.{type=TokenType.MINUS, lexeme="-"},
                 Token.{type=TokenType.NUMBER, lexeme="123", literal=TokenLiteral.{Number=123}},
                 Token.{type=TokenType.SEMICOLON, lexeme=";"},
@@ -93,7 +93,7 @@ test_parser_parse_expr :: () => {
         },
         .{
             title="parse factor",
-            tokens=_to_list(Token.[
+            tokens=to_list(Token.[
                 Token.{type=TokenType.NUMBER, lexeme="123", literal=TokenLiteral.{Number=123}},
                 Token.{type=TokenType.STAR, lexeme="*"},
                 Token.{type=TokenType.NUMBER, lexeme="456", literal=TokenLiteral.{Number=456}},
@@ -108,7 +108,7 @@ test_parser_parse_expr :: () => {
         },
         .{
             title="parse term",
-            tokens=_to_list(Token.[
+            tokens=to_list(Token.[
                 Token.{type=TokenType.NUMBER, lexeme="123", literal=TokenLiteral.{Number=123}},
                 Token.{type=TokenType.MINUS, lexeme="-"},
                 Token.{type=TokenType.NUMBER, lexeme="456", literal=TokenLiteral.{Number=456}},
@@ -123,7 +123,7 @@ test_parser_parse_expr :: () => {
         },
         .{
             title="parse comparison",
-            tokens=_to_list(Token.[
+            tokens=to_list(Token.[
                 Token.{type=TokenType.NUMBER, lexeme="123", literal=TokenLiteral.{Number=123}},
                 Token.{type=TokenType.LESS_EQUAL, lexeme="<="},
                 Token.{type=TokenType.NUMBER, lexeme="456", literal=TokenLiteral.{Number=456}},
@@ -138,7 +138,7 @@ test_parser_parse_expr :: () => {
         },
         .{
             title="parse equality",
-            tokens=_to_list(Token.[
+            tokens=to_list(Token.[
                 Token.{type=TokenType.NUMBER, lexeme="123", literal=TokenLiteral.{Number=123}},
                 Token.{type=TokenType.EQUAL_EQUAL, lexeme="=="},
                 Token.{type=TokenType.NUMBER, lexeme="456", literal=TokenLiteral.{Number=456}},
@@ -153,7 +153,7 @@ test_parser_parse_expr :: () => {
         },
         .{
             title="precedence (unary vs factor)",
-            tokens=_to_list(Token.[
+            tokens=to_list(Token.[
                 Token.{type=TokenType.NUMBER, lexeme="123", literal=TokenLiteral.{Number=123}},
                 Token.{type=TokenType.STAR, lexeme="*"},
                 Token.{type=TokenType.MINUS, lexeme="-"},
@@ -172,7 +172,7 @@ test_parser_parse_expr :: () => {
         },
         .{
             title="precedence (factor vs term)",
-            tokens=_to_list(Token.[
+            tokens=to_list(Token.[
                 Token.{type=TokenType.NUMBER, lexeme="1", literal=TokenLiteral.{Number=1}},
                 Token.{type=TokenType.PLUS, lexeme="+"},
                 Token.{type=TokenType.NUMBER, lexeme="2", literal=TokenLiteral.{Number=2}},
@@ -193,7 +193,7 @@ test_parser_parse_expr :: () => {
         },
         .{
             title="precedence (comparison vs factor)",
-            tokens=_to_list(Token.[
+            tokens=to_list(Token.[
                 Token.{type=TokenType.NUMBER, lexeme="1", literal=TokenLiteral.{Number=1}},
                 Token.{type=TokenType.LESS, lexeme="<"},
                 Token.{type=TokenType.NUMBER, lexeme="2", literal=TokenLiteral.{Number=2}},
@@ -214,7 +214,7 @@ test_parser_parse_expr :: () => {
         },
         .{
             title="precedence (equality vs comparison)",
-            tokens=_to_list(Token.[
+            tokens=to_list(Token.[
                 Token.{type=TokenType.NUMBER, lexeme="1", literal=TokenLiteral.{Number=1}},
                 Token.{type=TokenType.BANG_EQUAL, lexeme="!="},
                 Token.{type=TokenType.NUMBER, lexeme="2", literal=TokenLiteral.{Number=2}},
@@ -235,7 +235,7 @@ test_parser_parse_expr :: () => {
         },
         .{
             title="parse variable",
-            tokens=_to_list(Token.[
+            tokens=to_list(Token.[
                 Token.{type=TokenType.IDENTIFIER, lexeme="foo"},
                 Token.{type=TokenType.SEMICOLON, lexeme=";"},
                 Token.{type=TokenType.EOF, lexeme=""},
@@ -246,7 +246,7 @@ test_parser_parse_expr :: () => {
         },
         .{
             title="parse assignment",
-            tokens=_to_list(Token.[
+            tokens=to_list(Token.[
                 Token.{type=TokenType.IDENTIFIER, lexeme="foo"},
                 Token.{type=TokenType.EQUAL, lexeme="="},
                 Token.{type=TokenType.NUMBER, lexeme="2", literal=TokenLiteral.{Number=2}},
@@ -286,7 +286,7 @@ test_parser_parse_error :: () => {
     tests := TestCase.[
         .{
             title="no right paren",
-            tokens=_to_list(Token.[
+            tokens=to_list(Token.[
                 Token.{type=TokenType.LEFT_PAREN, lexeme="("},
                 Token.{type=TokenType.NUMBER, lexeme="1", literal=TokenLiteral.{Number=1}},
                 Token.{type=TokenType.SEMICOLON, lexeme=";"},
@@ -295,7 +295,7 @@ test_parser_parse_error :: () => {
         },
         .{
             title="no right paren (binary)",
-            tokens=_to_list(Token.[
+            tokens=to_list(Token.[
                 Token.{type=TokenType.LEFT_PAREN, lexeme="("},
                 Token.{type=TokenType.NUMBER, lexeme="1", literal=TokenLiteral.{Number=1}},
                 Token.{type=TokenType.GREATER, lexeme=">"},
@@ -306,7 +306,7 @@ test_parser_parse_error :: () => {
         },
         .{
             title="invalid assignment",
-            tokens=_to_list(Token.[
+            tokens=to_list(Token.[
                 Token.{type=TokenType.IDENTIFIER, lexeme="a"},
                 Token.{type=TokenType.PLUS, lexeme="+"},
                 Token.{type=TokenType.IDENTIFIER, lexeme="b"},
@@ -318,21 +318,21 @@ test_parser_parse_error :: () => {
         },
         .{
             title="empty expression",
-            tokens=_to_list(Token.[
+            tokens=to_list(Token.[
                 Token.{type=TokenType.SEMICOLON, lexeme=";"},
                 Token.{type=TokenType.EOF, lexeme=""},
             ]),
         },
         .{
             title="no semicolon in expressionstmt",
-            tokens=_to_list(Token.[
+            tokens=to_list(Token.[
                 Token.{type=TokenType.NUMBER, lexeme="1", literal=TokenLiteral.{Number=1}},
                 Token.{type=TokenType.EOF, lexeme=""},
             ]),
         },
         .{
             title="no semicolon in printstmt",
-            tokens=_to_list(Token.[
+            tokens=to_list(Token.[
                 Token.{type=TokenType.PRINT, lexeme="print"},
                 Token.{type=TokenType.NUMBER, lexeme="1", literal=TokenLiteral.{Number=1}},
                 Token.{type=TokenType.EOF, lexeme=""},
@@ -340,7 +340,7 @@ test_parser_parse_error :: () => {
         },
         .{
             title="unterminated binary expr",
-            tokens=_to_list(Token.[
+            tokens=to_list(Token.[
                 Token.{type=TokenType.NUMBER, lexeme="1", literal=TokenLiteral.{Number=1}},
                 Token.{type=TokenType.PLUS, lexeme="+"},
                 Token.{type=TokenType.SEMICOLON, lexeme=";"},
@@ -349,7 +349,7 @@ test_parser_parse_error :: () => {
         },
         .{
             title="var with non-identifier",
-            tokens=_to_list(Token.[
+            tokens=to_list(Token.[
                 Token.{type=TokenType.VAR, lexeme="var"},
                 Token.{type=TokenType.NUMBER, lexeme="1", literal=TokenLiteral.{Number=1}},
                 Token.{type=TokenType.SEMICOLON, lexeme=";"},
@@ -358,9 +358,19 @@ test_parser_parse_error :: () => {
         },
         .{
             title="no semicolon in varstmt",
-            tokens=_to_list(Token.[
+            tokens=to_list(Token.[
                 Token.{type=TokenType.VAR, lexeme="var"},
                 Token.{type=TokenType.IDENTIFIER, lexeme="foo"},
+                Token.{type=TokenType.EOF, lexeme=""},
+            ]),
+        },
+        .{
+            title="no right brace (block)",
+            tokens=to_list(Token.[
+                Token.{type=TokenType.LEFT_BRACE, lexeme="{"},
+                Token.{type=TokenType.VAR, lexeme="var"},
+                Token.{type=TokenType.IDENTIFIER, lexeme="foo"},
+                Token.{type=TokenType.SEMICOLON, lexeme=";"},
                 Token.{type=TokenType.EOF, lexeme=""},
             ]),
         },
