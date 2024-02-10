@@ -1,11 +1,14 @@
 #load "./object"
 #load "./runtime_error"
 #load "./token"
+#load "./util"
 
 use core { Result, printf, tprintf }
+use core.conv
 use core.map
 
 Environment :: struct {
+    enclosing: &Environment;
     value: Map(str, LoxObject) = map.literal(str, LoxObject, .[]);
 
     define :: (e: &Environment, name: str, value: LoxObject) => {
@@ -15,6 +18,10 @@ Environment :: struct {
     get :: (e: &Environment, name: Token) -> Result(LoxObject, RuntimeError) {
         if e.value->has(name.lexeme) {
             return .{Ok=e.value->get(name.lexeme)?};
+        }
+
+        if e.enclosing != null {
+            return e.enclosing->get(name);
         }
 
         // NOTE: this should be runtime error, otherwise functions cannot call each other
@@ -28,6 +35,20 @@ Environment :: struct {
             return .{Ok=.{}};
         }
 
+        if e.enclosing != null {
+            return e.enclosing->assign(name, value);
+        }
+
         return .{Err=RuntimeError.{token=name, message=tprintf("Undefined varible '{}'.", name.lexeme)}};
     }
+}
+
+// define format for printf (just for tests and debugs)
+@conv.Custom_Format_Proc.{ Environment }
+(output: &conv.Format_Output, format: &conv.Format, environment: &Environment) {
+    if environment.enclosing == null {
+        conv.format(output, "Environment { enclosing = { null }, value = { {} } }", environment.value);
+        return;
+    }
+    conv.format(output, "Environment { enclosing = { {} }, value = { {} } }", *environment.enclosing, environment.value);
 }

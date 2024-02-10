@@ -11,7 +11,7 @@ test_define :: () => {
         title: str;
         name: str;
         obj: LoxObject;
-        map: Map(str, LoxObject);
+        env: Environment;
         expected: Map(str, LoxObject);
     }
     tests := TestCase.[
@@ -19,7 +19,9 @@ test_define :: () => {
             title="new object",
             name="foo",
             obj=LoxObject.{Number=123},
-            map=map.literal(str, LoxObject, .[]),
+            env=Environment.{
+                value=map.literal(str, LoxObject, .[]),
+            },
             expected=map.literal(str, LoxObject, .[
                 .{"foo", LoxObject.{Number=123}},
             ]),
@@ -28,9 +30,27 @@ test_define :: () => {
             title="updated object",
             name="foo",
             obj=LoxObject.{Number=123},
-            map=map.literal(str, LoxObject, .[
-                .{"foo", LoxObject.{String="old"}},
+            env=Environment.{
+                value=map.literal(str, LoxObject, .[
+                    .{"foo", LoxObject.{String="old"}},
+                ]),
+            },
+            expected=map.literal(str, LoxObject, .[
+                .{"foo", LoxObject.{Number=123}},
             ]),
+        },
+        .{
+            title="shadowing",
+            name="foo",
+            obj=LoxObject.{Number=123},
+            env=Environment.{
+                enclosing=&Environment.{
+                    value=map.literal(str, LoxObject, .[
+                        .{"foo", LoxObject.{String="old"}},
+                    ]),
+                },
+                value=map.literal(str, LoxObject, .[]),
+            },
             expected=map.literal(str, LoxObject, .[
                 .{"foo", LoxObject.{Number=123}},
             ]),
@@ -38,15 +58,183 @@ test_define :: () => {
     ];
 
     for tt: tests {
-        env := Environment.{value=tt.map};
-        env->define(tt.name, tt.obj);
+        tt.env->define(tt.name, tt.obj);
 
-        actual := env.value;
+        actual := tt.env.value;
         assert(tprintf("{}", actual) == tprintf("{}", tt.expected) , tprintf("{}: {} != {}", tt.title, actual, tt.expected));
     }
 }
 
+test_get :: () => {
+    TestCase :: struct {
+        title: str;
+        token: Token;
+        env: Environment;
+        expected: Result(LoxObject, RuntimeError);
+    }
+    tests := TestCase.[
+        .{
+            title="get from env",
+            token=Token.{type=TokenType.IDENTIFIER, lexeme="foo"},
+            env=Environment.{
+                value=map.literal(str, LoxObject, .[
+                    .{"foo", LoxObject.{Number=123}},
+                ]),
+            },
+            expected=.{Ok=LoxObject.{Number=123}},
+        },
+        .{
+            title="get from enclosing env",
+            token=Token.{type=TokenType.IDENTIFIER, lexeme="foo"},
+            env=Environment.{
+                enclosing=&Environment.{
+                    value=map.literal(str, LoxObject, .[
+                        .{"foo", LoxObject.{Number=123}},
+                    ]),
+                },
+                value=map.literal(str, LoxObject, .[]),
+            },
+            expected=.{Ok=LoxObject.{Number=123}},
+        },
+        .{
+            title="shadowing",
+            token=Token.{type=TokenType.IDENTIFIER, lexeme="foo"},
+            env=Environment.{
+                enclosing=&Environment.{
+                    value=map.literal(str, LoxObject, .[
+                        .{"foo", LoxObject.{String="outer"}},
+                    ]),
+                },
+                value=map.literal(str, LoxObject, .[
+                    .{"foo", LoxObject.{String="inner"}},
+                ]),
+            },
+            expected=.{Ok=LoxObject.{String="inner"}},
+        },
+        .{
+            title="shadowing",
+            token=Token.{type=TokenType.IDENTIFIER, lexeme="bar"},
+            env=Environment.{
+                enclosing=&Environment.{
+                    value=map.literal(str, LoxObject, .[
+                        .{"foo", LoxObject.{String="outer"}},
+                    ]),
+                },
+                value=map.literal(str, LoxObject, .[
+                    .{"foo", LoxObject.{String="inner"}},
+                ]),
+            },
+            expected=.{Err=RuntimeError.{message="Undefined varible 'bar'.", token=Token.{type=TokenType.IDENTIFIER, lexeme="bar"}}},
+        },
+    ];
+
+    for tt: tests {
+        actual := tt.env->get(tt.token);
+        assert(tprintf("{}", actual) == tprintf("{}", tt.expected) , tprintf("{}: {} != {}", tt.title, actual, tt.expected));
+    }
+}
+
+test_assign :: () => {
+    TestCase :: struct {
+        title: str;
+        token: Token;
+        value: LoxObject;
+        env: Environment;
+        expected: Result(LoxObject, RuntimeError);
+        expected_env: Environment;
+    }
+    tests := TestCase.[
+        .{
+            title="assign var",
+            token=Token.{type=TokenType.IDENTIFIER, lexeme="foo"},
+            value=LoxObject.{String="new"},
+            env=Environment.{
+                value=map.literal(str, LoxObject, .[
+                    .{"foo", LoxObject.{Number=123}},
+                ]),
+            },
+            expected=.{Ok=.{}}, // NOTE: Ok value is not used
+            expected_env=Environment.{
+                value=map.literal(str, LoxObject, .[
+                    .{"foo", LoxObject.{String="new"}},
+                ]),
+            },
+        },
+        .{
+            title="assign enclosing var",
+            token=Token.{type=TokenType.IDENTIFIER, lexeme="foo"},
+            value=LoxObject.{String="new"},
+            env=Environment.{
+                enclosing=&Environment.{
+                    value=map.literal(str, LoxObject, .[
+                        .{"foo", LoxObject.{Number=123}},
+                    ]),
+                },
+                value=map.literal(str, LoxObject, .[]),
+            },
+            expected=.{Ok=.{}}, // NOTE: Ok value is not used
+            expected_env=Environment.{
+                enclosing=&Environment.{
+                    value=map.literal(str, LoxObject, .[
+                        .{"foo", LoxObject.{String="new"}},
+                    ]),
+                },
+                value=map.literal(str, LoxObject, .[]),
+            },
+        },
+        .{
+            title="shadowing",
+            token=Token.{type=TokenType.IDENTIFIER, lexeme="foo"},
+            value=LoxObject.{String="new"},
+            env=Environment.{
+                enclosing=&Environment.{
+                    value=map.literal(str, LoxObject, .[
+                        .{"foo", LoxObject.{String="outer"}},
+                    ]),
+                },
+                value=map.literal(str, LoxObject, .[
+                    .{"foo", LoxObject.{String="inner"}},
+                ]),
+            },
+            expected=.{Ok=.{}}, // NOTE: Ok value is not used
+            expected_env=Environment.{
+                enclosing=&Environment.{
+                    value=map.literal(str, LoxObject, .[
+                        .{"foo", LoxObject.{String="outer"}},
+                    ]),
+                },
+                value=map.literal(str, LoxObject, .[
+                    .{"foo", LoxObject.{String="new"}},
+                ]),
+            },
+        },
+        .{
+            title="not defined",
+            token=Token.{type=TokenType.IDENTIFIER, lexeme="bar"},
+            value=LoxObject.{String="new"},
+            env=Environment.{
+                value=map.literal(str, LoxObject, .[
+                    .{"foo", LoxObject.{Number=123}},
+                ]),
+            },
+            expected=.{Err=RuntimeError.{message="Undefined varible 'bar'.", token=Token.{type=TokenType.IDENTIFIER, lexeme="bar"}}},
+            expected_env=Environment.{
+                value=map.literal(str, LoxObject, .[
+                    .{"foo", LoxObject.{Number=123}},
+                ]),
+            },
+        },
+    ];
+
+    for tt: tests {
+        actual := tt.env->assign(tt.token, tt.value);
+        assert(tprintf("{}", actual) == tprintf("{}", tt.expected) , tprintf("{}: {} != {}", tt.title, actual, tt.expected));
+        assert(tprintf("{}", tt.env) == tprintf("{}", tt.expected_env) , tprintf("{}: {} != {}", tt.title, tt.env, tt.expected_env));
+    }
+}
 
 main :: () {
     test_define();
+    test_get();
+    test_assign();
 }
