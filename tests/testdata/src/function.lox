@@ -1,0 +1,5 @@
+fun message(str) {
+    print str;
+}
+
+message("Hello, world!");

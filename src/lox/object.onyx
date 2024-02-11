@@ -2,6 +2,7 @@ use core {Result}
 use core.list
 use core.time
 
+#load "./function"
 #load "./interpreter"
 
 LoxObject :: union {
@@ -62,11 +63,15 @@ LoxObject :: union {
 
 LoxCallable :: union {
     BuiltIn: BuiltInCallable;
+    Function: LoxFunction;
 
     call :: (c: LoxCallable, interpreter: &Interpreter, arguments: list.List(LoxObject)) -> Result(LoxObject, RuntimeError) {
         switch c {
             case b: .BuiltIn {
                 return b->call(arguments);
+            }
+            case f: .Function {
+                return f->call(interpreter, arguments);
             }
         }
     }
@@ -75,6 +80,9 @@ LoxCallable :: union {
         switch c {
             case b: .BuiltIn {
                 return b->arity();
+            }
+            case f: .Function {
+                return f->arity();
             }
         }
     }

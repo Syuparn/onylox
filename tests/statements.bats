@@ -40,6 +40,12 @@ setup() {
   assert_success
 }
 
+@test "redefine assignment" {
+  run wasmer run --mapdir tests:tests onylox.wasm -- tests/testdata/src/reassign.lox
+  assert_output "2"
+  assert_success
+}
+
 @test "block statement" {
   run wasmer run --mapdir tests:tests onylox.wasm -- tests/testdata/src/block.lox
   assert_output "hello"

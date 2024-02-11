@@ -1,4 +1,5 @@
 #load "./expr"
+#load "./function"
 #load "./interpreter"
 #load "./token"
 #load "./token_type"
@@ -542,7 +543,7 @@ test_interpreter_evaluate_error :: () => {
             expected=RuntimeError.{token=Token.{type=TokenType.RIGHT_PAREN, lexeme=")"}, message="Can only call functions and clauses."},
         },
         .{
-            title="arity is wrong",
+            title="arity is wrong (built-in)",
             expr=Expr.{Call=CallExpr.{
                 callee=&Expr.{Variable=VariableExpr.{name=Token.{type=TokenType.IDENTIFIER, lexeme="dummy"}}},
                 paren=Token.{type=TokenType.RIGHT_PAREN, lexeme=")"},
@@ -698,6 +699,13 @@ test_interpreter_stringify :: () {
             title="built-in function",
             obj=LoxObject.{Callable=LoxCallable.{BuiltIn=BuiltInCallable.{}}},
             expected="<native fn>",
+        },
+        .{
+            title="function",
+            obj=LoxObject.{Callable=LoxCallable.{Function=LoxFunction.{declaration=FunctionStmt.{
+                name=Token.{type=TokenType.IDENTIFIER, lexeme="foo"},
+            }}}},
+            expected="<fn foo>",
         },
     ];
 

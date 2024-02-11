@@ -1,0 +1,33 @@
+#load "./environment.onyx"
+#load "./interpreter.onyx"
+#load "./stmt.onyx"
+
+use core {Result}
+use core.list
+
+LoxFunction :: struct {
+    declaration: FunctionStmt;
+
+    call :: (f: LoxFunction, interpreter: &Interpreter, arguments: list.List(LoxObject)) -> Result(LoxObject, RuntimeError) {
+        // NOTE: define arguments as l-value
+        args := arguments;
+
+        // create function scope
+        environment := Environment.{enclosing=&interpreter.environment};
+
+        for i: 0..f.declaration.params->count() {
+            environment->define(f.declaration.params->at(i).lexeme, *(&args)->at(i));
+        }
+
+        result := interpreter->execute_block(f.declaration.body, environment);
+        if result->is_err() {
+            return .{Err=result->err()?};
+        }
+
+        return .{Ok=LoxObject.{Null=.{}}};
+    }
+
+    arity :: (f: LoxFunction) -> u8 {
+        return cast(u8) f.declaration.params->count();
+    }
+}

@@ -1,0 +1,9 @@
+var f = "hello";
+print f;
+
+// variable can be redefined by function (Lox has LISP-1 namespace)
+fun f(a, b) {
+    print a + b;
+}
+
+f(3, 2);

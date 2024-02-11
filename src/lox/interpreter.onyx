@@ -29,7 +29,7 @@ Interpreter :: struct {
         return stmt->accept(interpreter);
     }
 
-    _execute_block :: (interpreter: &Interpreter, statements: list.List(&Stmt), environment: Environment) -> Result(void, RuntimeError) {
+    execute_block :: (interpreter: &Interpreter, statements: list.List(&Stmt), environment: Environment) -> Result(void, RuntimeError) {
         previous := interpreter.environment;
         defer interpreter.environment = previous;
 
@@ -101,7 +101,7 @@ Interpreter :: struct {
     visit_block_stmt :: (interpreter: &Interpreter, stmt: BlockStmt) -> Result(void, RuntimeError) {
         // TODO: free unused environment
         env_ptr := context.allocator->move(interpreter.environment);
-        return interpreter->_execute_block(stmt.statements, Environment.{enclosing=env_ptr});
+        return interpreter->execute_block(stmt.statements, Environment.{enclosing=env_ptr});
     }
 
     visit_while_stmt :: (interpreter: &Interpreter, stmt: WhileStmt) -> Result(void, RuntimeError) {
@@ -124,6 +124,12 @@ Interpreter :: struct {
             }
         }
 
+        return .{Ok=.{}};
+    }
+
+    visit_function_stmt :: (interpreter: &Interpreter, stmt: FunctionStmt) -> Result(void, RuntimeError) {
+        function := LoxObject.{Callable=LoxCallable.{Function=LoxFunction.{declaration=stmt}}};
+        interpreter.environment->define(stmt.name.lexeme, function);
         return .{Ok=.{}};
     }
 
@@ -307,7 +313,14 @@ Interpreter :: struct {
                 return s;
             }
             case f: .Callable {
-                return "<native fn>";
+                switch f {
+                    case .BuiltIn {
+                        return "<native fn>";
+                    }
+                    case ff: .Function {
+                        return tprintf("<fn {}>", ff.declaration.name.lexeme);
+                    }
+                }
             }
         }
     }

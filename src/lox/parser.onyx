@@ -32,6 +32,10 @@ Parser :: struct {
     }
 
     _declaration :: (p: &Parser) -> ? Stmt {
+        if p->_match(TokenType.FUN) {
+            return p->_function("function");
+        }
+
         if p->_match(TokenType.VAR) {
             o := p->_var_declaration();
             if !is_empty(o) {
@@ -186,6 +190,28 @@ Parser :: struct {
         value := p->_expression()?;
         p->_consume(TokenType.SEMICOLON, "Expect ';' after expression.")?;
         return Stmt.{Expression=ExpressionStmt.{expression=value}};
+    }
+
+    _function :: (p: &Parser, kind: str) -> ? Stmt {
+        name := p->_consume(TokenType.IDENTIFIER, tprintf("Expect {} name.", kind))?;
+        p->_consume(TokenType.LEFT_PAREN, tprintf("Expect '(' after {} name.", kind))?;
+        
+        parameters := list.make(Token);
+        if !p->_check(TokenType.RIGHT_PAREN) {
+            parameters->push_end(p->_consume(TokenType.IDENTIFIER, "Expect parameter name.")?);
+            while p->_match(TokenType.COMMA) {
+                if parameters->count() >= 255 {
+                    p->_error(p->_peek(), "Can't have more than 255 parameters.");
+                }
+                parameters->push_end(p->_consume(TokenType.IDENTIFIER, "Expect parameter name.")?);
+            }
+        }
+        p->_consume(TokenType.RIGHT_PAREN, "Expect ')' after parameters.")?;
+
+        p->_consume(TokenType.LEFT_BRACE, tprintf("Expect '{' before {} body.", kind))?;
+        body := p->_block()?;
+
+        return Stmt.{Function=FunctionStmt.{name=name, params=parameters, body=body}};
     }
 
     _block :: (p: &Parser) -> ? list.List(&Stmt) {

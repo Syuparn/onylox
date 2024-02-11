@@ -1,0 +1,15 @@
+fun one(a) {
+    print a;
+}
+
+fun two(a, b) {
+    print a + b;
+}
+
+fun three(a, b, c) {
+    print a + b + c;
+}
+
+one(1);
+two(1, 2);
+three(1, 2, 3);

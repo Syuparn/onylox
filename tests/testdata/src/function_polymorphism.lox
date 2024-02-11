@@ -1,0 +1,6 @@
+fun plus(a, b) {
+    print a + b;
+}
+
+plus("foo", "bar");
+plus(2, 3);
