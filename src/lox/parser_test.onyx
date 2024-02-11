@@ -677,6 +677,14 @@ test_parser_parse_error :: () => {
                 Token.{type=TokenType.EOF, lexeme=""},
             ]),
         },
+        .{
+            title="no semicolon (return)",
+            tokens=to_list(Token.[
+                Token.{type=TokenType.RETURN, lexeme="return"},
+                Token.{type=TokenType.IDENTIFIER, lexeme="foo"},
+                Token.{type=TokenType.EOF, lexeme=""},
+            ]),
+        },
     ];
 
     for tt: tests {

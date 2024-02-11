@@ -1,6 +1,9 @@
+#load "./object"
 #load "./token"
 
 RuntimeError :: struct {
     message: str;
     token: Token;
+    // HACK: used for return
+    value: ?LoxObject;
 }

@@ -88,6 +88,20 @@ Interpreter :: struct {
         return .{Ok=.{}};
     }
 
+    visit_return_stmt :: (interpreter: &Interpreter, stmt: ReturnStmt) -> Result(void, RuntimeError) {
+        value := LoxObject.{Null=.{}};
+        if !is_empty(stmt.value) {
+            result := interpreter->evaluate(stmt.value?);
+            if result->is_err() {
+                return .{Err=result->err()?};
+            }
+            value = result->ok()?;
+        }
+
+        // HACK: use error to jump to where callee is evaluated
+        return .{Err=RuntimeError.{value=Optional.make(value)}};
+    }
+
     visit_var_stmt :: (interpreter: &Interpreter, stmt: VarStmt) -> Result(void, RuntimeError) {
         value := LoxObject.{Null=.{}};
         if !is_empty(stmt.initializer) {

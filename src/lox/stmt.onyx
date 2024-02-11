@@ -11,6 +11,7 @@ Stmt :: union {
     If: IfStmt;
     While: WhileStmt;
     Function: FunctionStmt;
+    Return: ReturnStmt;
 
     accept :: (stmt: Stmt, visitor: $T) -> Result(void, RuntimeError) where StmtVisitor(T) {
         switch stmt {
@@ -34,6 +35,9 @@ Stmt :: union {
             }
             case s: .Function {
                 return visitor->visit_function_stmt(s);
+            }
+            case s: .Return {
+                return visitor->visit_return_stmt(s);
             }
         }
     }
@@ -74,6 +78,11 @@ FunctionStmt :: struct {
     body: list.List(&Stmt)
 }
 
+ReturnStmt :: struct {
+    keyword: Token;
+    value: ?Expr;
+}
+
 StmtVisitor :: interface (t: $T) {
     { t->visit_if_stmt(IfStmt.{}) } -> Result(void, RuntimeError);
     { t->visit_expression_stmt(ExpressionStmt.{}) } -> Result(void, RuntimeError);
@@ -82,4 +91,5 @@ StmtVisitor :: interface (t: $T) {
     { t->visit_block_stmt(BlockStmt.{}) } -> Result(void, RuntimeError);
     { t->visit_while_stmt(WhileStmt.{}) } -> Result(void, RuntimeError);
     { t->visit_function_stmt(FunctionStmt.{}) } -> Result(void, RuntimeError);
+    { t->visit_return_stmt(ReturnStmt.{}) } -> Result(void, RuntimeError);
 }

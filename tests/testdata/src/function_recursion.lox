@@ -1,0 +1,8 @@
+fun sumTo(n) {
+    if (n < 1) {
+        return 0;
+    }
+    return n + sumTo(n - 1);
+}
+
+print sumTo(10);

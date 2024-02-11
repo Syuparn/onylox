@@ -1,0 +1,10 @@
+fun add(a, b) {
+    return a + b;
+}
+
+fun nothing() {
+    var a = 1;
+}
+
+print add(2, 3);
+print nothing();

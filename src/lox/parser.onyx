@@ -72,6 +72,9 @@ Parser :: struct {
         if p->_match(TokenType.PRINT) {
             return p->_print_statement();
         }
+        if p->_match(TokenType.RETURN) {
+            return p->_return_statement();
+        }
         if p->_match(TokenType.LEFT_BRACE) {
             return Stmt.{Block=BlockStmt.{statements=p->_block()?}};
         }
@@ -184,6 +187,18 @@ Parser :: struct {
         value := p->_expression()?;
         p->_consume(TokenType.SEMICOLON, "Expect ';' after expression.")?;
         return Stmt.{Print=PrintStmt.{expression=value}};
+    }
+
+    _return_statement :: (p: &Parser) -> ? Stmt {
+        keyword := p->_previous();
+        value := Optional.empty(Expr);
+        if !p->_check(TokenType.SEMICOLON) {
+            // NOTE: wrap and unwrap is neccessary for early return
+            value = Optional.make(p->_expression()?);
+        }
+
+        p->_consume(TokenType.SEMICOLON, "Expect ';' after expression.")?;
+        return Stmt.{Return=ReturnStmt.{keyword=keyword, value=value}};
     }
 
     _expression_statement :: (p: &Parser) -> ? Stmt {

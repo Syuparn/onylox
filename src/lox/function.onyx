@@ -13,7 +13,9 @@ LoxFunction :: struct {
         args := arguments;
 
         // create function scope
-        environment := Environment.{enclosing=&interpreter.environment};
+        // TODO: free pointer
+        env_ptr := context.allocator->move(interpreter.environment);
+        environment := Environment.{enclosing=env_ptr};
 
         for i: 0..f.declaration.params->count() {
             environment->define(f.declaration.params->at(i).lexeme, *(&args)->at(i));
@@ -21,7 +23,14 @@ LoxFunction :: struct {
 
         result := interpreter->execute_block(f.declaration.body, environment);
         if result->is_err() {
-            return .{Err=result->err()?};
+            err := result->err()?;
+
+            // HACK: if value exists, it is a returned value from function
+            if !is_empty(err.value) {
+                return .{Ok=err.value?};
+            }
+
+            return .{Err=err};
         }
 
         return .{Ok=LoxObject.{Null=.{}}};

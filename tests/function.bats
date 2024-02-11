@@ -30,6 +30,15 @@ setup() {
   assert_output "hello"$'\n'"5"
 }
 
+@test "return statement" {
+  run wasmer run --mapdir tests:tests onylox.wasm -- tests/testdata/src/function_return.lox
+  assert_output "5"$'\n'"nil"
+}
+
+@test "recursion" {
+  run wasmer run --mapdir tests:tests onylox.wasm -- tests/testdata/src/function_recursion.lox
+  assert_output "55"
+}
+
 # recursion
-# return (and implicit nil return)
 # closure
