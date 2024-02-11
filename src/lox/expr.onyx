@@ -2,6 +2,7 @@
 #load "./token"
 
 use core { printf, Result }
+use core.list
 use core.slice
 
 Expr :: union {
@@ -12,6 +13,7 @@ Expr :: union {
     Group: GroupExpr;
     Variable: VariableExpr;
     Assign: AssignExpr;
+    Call: CallExpr;
 
     accept :: (expr: Expr, visitor: $T) -> Result(LoxObject, RuntimeError) where Visitor(T) {
         switch expr {
@@ -35,6 +37,9 @@ Expr :: union {
             }
             case e: .Assign {
                 return visitor->visit_assign_expr(e);
+            }
+            case e: .Call {
+                return visitor->visit_call_expr(e);
             }
         }
     }
@@ -75,6 +80,12 @@ LogicalExpr :: struct {
     right: &Expr;
 }
 
+CallExpr :: struct {
+    callee: &Expr;
+    paren: Token;
+    arguments: list.List(&Expr);
+}
+
 Visitor :: interface (t: $T) {
     { t->visit_literal_expr(LiteralExpr.{}) } -> Result(LoxObject, RuntimeError);
     { t->visit_logical_expr(LogicalExpr.{}) } -> Result(LoxObject, RuntimeError);
@@ -83,4 +94,5 @@ Visitor :: interface (t: $T) {
     { t->visit_group_expr(GroupExpr.{}) } -> Result(LoxObject, RuntimeError);
     { t->visit_variable_expr(VariableExpr.{}) } -> Result(LoxObject, RuntimeError);
     { t->visit_assign_expr(AssignExpr.{}) } -> Result(LoxObject, RuntimeError);
+    { t->visit_call_expr(CallExpr.{}) } -> Result(LoxObject, RuntimeError);
 }

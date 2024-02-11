@@ -91,6 +91,53 @@ test_ast_printer :: () => {
             },
             expected="(= foo (= bar 123.0000))",
         },
+        .{
+            expr=Expr.{
+                Call=CallExpr.{
+                    callee=&Expr.{
+                        Variable=VariableExpr.{
+                            name=Token.{type=TokenType.IDENTIFIER, lexeme="foo", line=1},
+                        },
+                    },
+                    paren=Token.{type=TokenType.RIGHT_PAREN, lexeme=")", line=1},
+                    arguments=to_pointer_list(Expr.[]),
+                },
+            },
+            expected="(call (var foo))",
+        },
+        .{
+            expr=Expr.{
+                Call=CallExpr.{
+                    callee=&Expr.{
+                        Variable=VariableExpr.{
+                            name=Token.{type=TokenType.IDENTIFIER, lexeme="foo", line=1},
+                        },
+                    },
+                    paren=Token.{type=TokenType.RIGHT_PAREN, lexeme=")", line=1},
+                    arguments=to_pointer_list(Expr.[
+                        Expr.{Literal=LiteralExpr.{value=TokenLiteral.{Number=123}}},
+                    ]),
+                },
+            },
+            expected="(call (var foo) 123.0000)",
+        },
+        .{
+            expr=Expr.{
+                Call=CallExpr.{
+                    callee=&Expr.{
+                        Variable=VariableExpr.{
+                            name=Token.{type=TokenType.IDENTIFIER, lexeme="foo", line=1},
+                        },
+                    },
+                    paren=Token.{type=TokenType.RIGHT_PAREN, lexeme=")", line=1},
+                    arguments=to_pointer_list(Expr.[
+                        Expr.{Literal=LiteralExpr.{value=TokenLiteral.{Number=123}}},
+                        Expr.{Literal=LiteralExpr.{value=TokenLiteral.{Number=456}}},
+                    ]),
+                },
+            },
+            expected="(call (var foo) 123.0000 456.0000)",
+        },
         // avoid null pointer dereference
         .{
             expr=Expr.{
@@ -115,8 +162,9 @@ test_ast_printer :: () => {
 
     for tt: tests {
         printer := ASTPrinter.{};
-        // must be ok
-        obj := printer->print(tt.expr)->ok()?;
+
+        result := printer->print(tt.expr);
+        obj := result->expect(tprintf("{}: must not be an error: {}\n", tt.expected, result->err()));
         actual := obj.String->unwrap();
         assert(actual == tt.expected, tprintf("\"{}\" != \"{}\"", actual, tt.expected));
     }

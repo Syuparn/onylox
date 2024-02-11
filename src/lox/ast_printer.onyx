@@ -1,9 +1,11 @@
 #load "./expr"
 #load "./object"
 #load "./runtime_error"
+#load "./util"
 
 use core
 use core { printf, Result, tprintf }
+use core.slice
 use core.string
 
 ASTPrinter :: struct {
@@ -57,30 +59,49 @@ ASTPrinter :: struct {
     }
 
     visit_assign_expr :: (p: ASTPrinter, expr: AssignExpr) -> Result(LoxObject, RuntimeError) {
-        obj := (*expr.value)->accept(p)->forward_err();
+        obj := (*expr.value)->accept(p)->ok()?;
         value := obj.String->unwrap();
         return .{Ok=LoxObject.{String=tprintf("(= {} {})", expr.name.lexeme, value)}};
     }
 
-    parenthesize :: (p: ASTPrinter, name: str, exprs: ..&Expr) -> Result(LoxObject, RuntimeError) {
-        // TODO: replace with initialize function
-        buffer_memory := "                                                                                          ";
-        buffer := string.buffer_make(buffer_memory, "(");
-        string.buffer_append(&buffer, name);
-        for expr: exprs {
-            string.buffer_append(&buffer, " ");
-
-            if expr == null {
-                // NOTE: do not raise error here (because this is used for debugging)
-                string.buffer_append(&buffer, "<null Expr (should be Onylox bug)>");
-            } else {
-                obj := (*expr)->accept(p)->forward_err();
-                s := obj.String->unwrap();
-                string.buffer_append(&buffer, s);
-            }
+    visit_call_expr :: (p: ASTPrinter, expr: CallExpr) -> Result(LoxObject, RuntimeError) {
+        exprs := slice.make(&Expr, list_count(&Expr, expr.arguments) + 1);
+        exprs[0] = expr.callee;
+        i := 1;
+        for argument: expr.arguments->as_iter() {
+            exprs[i] = argument;
+            i = i + 1;
         }
-        string.buffer_append(&buffer, ")");
 
-        return .{Ok=LoxObject.{String=string.buffer_to_str(&buffer)}};
+        return p->parenthesize("call", exprs);
+    }
+
+    parenthesize :: #match {
+        // HACK: overload for variadic arguments and argument slice
+        (p: ASTPrinter, name: str, exprs: ..&Expr) -> Result(LoxObject, RuntimeError) {
+            return p->parenthesize(name, exprs);
+        },
+        (p: ASTPrinter, name: str, exprs: []&Expr) -> Result(LoxObject, RuntimeError) {
+            // TODO: replace with initialize function
+            buffer_memory := "                                                                                               ";
+            buffer := string.buffer_make(buffer_memory, "(");
+            string.buffer_append(&buffer, name);
+            for expr: exprs {
+                string.buffer_append(&buffer, " ");
+
+                if expr == null {
+                    // NOTE: do not raise error here (because this is used for debugging)
+                    string.buffer_append(&buffer, "<null Expr (should be Onylox bug)>");
+                } else {
+                    obj := (*expr)->accept(p)->ok()?;
+
+                    s := obj.String?;
+                    string.buffer_append(&buffer, s);
+                }
+            }
+            string.buffer_append(&buffer, ")");
+
+            return .{Ok=LoxObject.{String=string.buffer_to_str(&buffer)}};
+        },
     }
 }

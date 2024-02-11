@@ -263,6 +263,10 @@ Interpreter :: struct {
         return interpreter.environment->get(expr.name);
     }
 
+    visit_call_expr :: (interpreter: &Interpreter, expr: CallExpr) -> Result(LoxObject, RuntimeError) {
+        return .{Err=RuntimeError.{token=expr.paren, message="TODO: impl"}};
+    }
+
     _stringify :: (interpreter: &Interpreter, obj: LoxObject) -> str {
         switch obj {
             case .Null {
