@@ -18,6 +18,10 @@ ASTPrinter :: struct {
         return p->parenthesize(expr.operator.lexeme, expr.left, expr.right);
     }
 
+    visit_logical_expr :: (p: ASTPrinter, expr: LogicalExpr) -> Result(LoxObject, RuntimeError) {
+        return p->parenthesize(expr.operator.lexeme, expr.left, expr.right);
+    }
+
     visit_unary_expr :: (p: ASTPrinter, expr: UnaryExpr) -> Result(LoxObject, RuntimeError) {
         return p->parenthesize(expr.operator.lexeme, expr.right);
     }

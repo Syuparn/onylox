@@ -35,6 +35,16 @@ test_ast_printer :: () => {
         },
         .{
             expr=Expr.{
+                Logical=LogicalExpr.{
+                    left=&Expr.{Literal=LiteralExpr.{value=TokenLiteral.{Number=123}}},
+                    operator=Token.{type=TokenType.OR, lexeme="or", literal=TokenLiteral.{Null=.{}}, line=1},
+                    right=&Expr.{Literal=LiteralExpr.{value=TokenLiteral.{Number=456}}},
+                },
+            },
+            expected="(or 123.0000 456.0000)",
+        },
+        .{
+            expr=Expr.{
                 Group=GroupExpr.{
                     expression=&Expr.{Literal=LiteralExpr.{value=TokenLiteral.{String="foo"}}},
                 },

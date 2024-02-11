@@ -1,8 +1,18 @@
+.PHONY: build
 build:
 	onyx build -r wasi -o onylox.wasm main.onyx
 
-test: build
-	@echo "--- unit tests ---"
-	find src/ -name "*_test.onyx" | xargs -I{} onyx run {}
+.PHONY: test
+test: test-unit test-integration
+	@echo "test"
+
+.PHONY: test-integration
+test-integration: build
 	@echo "--- integration tests ---"
 	bats tests
+
+.PHONY: test-unit
+test-unit:
+	@echo "--- unit tests ---"
+	find src/ -name "*_test.onyx" | xargs -I{} onyx run {}
+	@echo "done"

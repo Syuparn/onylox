@@ -14,3 +14,13 @@ setup() {
   run wasmer run --mapdir tests:tests onylox.wasm -- tests/testdata/src/dangling_else.lox
   assert_output "true-true"
 }
+
+@test "logical operators" {
+  run wasmer run --mapdir tests:tests onylox.wasm -- tests/testdata/src/logical_operators.lox
+  assert_output "left"$'\n'"right"$'\n'"left"$'\n'"false"$'\n'"right"$'\n'"false"$'\n'"false"$'\n'"false"
+}
+
+@test "shortcuts" {
+  run wasmer run --mapdir tests:tests onylox.wasm -- tests/testdata/src/shortcuts.lox
+  assert_output ""
+}

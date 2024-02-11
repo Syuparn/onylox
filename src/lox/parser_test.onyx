@@ -152,6 +152,36 @@ test_parser_parse_expr :: () => {
             }},
         },
         .{
+            title="parse or",
+            tokens=to_list(Token.[
+                Token.{type=TokenType.NUMBER, lexeme="123", literal=TokenLiteral.{Number=123}},
+                Token.{type=TokenType.OR, lexeme="or"},
+                Token.{type=TokenType.NUMBER, lexeme="456", literal=TokenLiteral.{Number=456}},
+                Token.{type=TokenType.SEMICOLON, lexeme=";"},
+                Token.{type=TokenType.EOF, lexeme=""},
+            ]),
+            expected=Expr.{Logical=LogicalExpr.{
+                left=&Expr.{Literal=LiteralExpr.{value=TokenLiteral.{Number=123}}},
+                operator=Token.{type=TokenType.OR, lexeme="or"},
+                right=&Expr.{Literal=LiteralExpr.{value=TokenLiteral.{Number=456}}},
+            }},
+        },
+        .{
+            title="parse and",
+            tokens=to_list(Token.[
+                Token.{type=TokenType.NUMBER, lexeme="123", literal=TokenLiteral.{Number=123}},
+                Token.{type=TokenType.AND, lexeme="and"},
+                Token.{type=TokenType.NUMBER, lexeme="456", literal=TokenLiteral.{Number=456}},
+                Token.{type=TokenType.SEMICOLON, lexeme=";"},
+                Token.{type=TokenType.EOF, lexeme=""},
+            ]),
+            expected=Expr.{Logical=LogicalExpr.{
+                left=&Expr.{Literal=LiteralExpr.{value=TokenLiteral.{Number=123}}},
+                operator=Token.{type=TokenType.AND, lexeme="and"},
+                right=&Expr.{Literal=LiteralExpr.{value=TokenLiteral.{Number=456}}},
+            }},
+        },
+        .{
             title="precedence (unary vs factor)",
             tokens=to_list(Token.[
                 Token.{type=TokenType.NUMBER, lexeme="123", literal=TokenLiteral.{Number=123}},
@@ -262,7 +292,7 @@ test_parser_parse_expr :: () => {
 
     for tt: tests {
         parser := Parser.{tokens=tt.tokens};
-        ast := parser->parse()->expect(tprintf("{}: expr must not be empty", tt.title));
+        ast := parser->parse()->expect(tprintf("{}: expr must be empty", tt.title));
 
         assert(ast->count() == 1, tprintf("{}: length: {} != 1", tt.title, ast->count()));
         stmt := ast->at(0);

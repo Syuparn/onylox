@@ -6,6 +6,7 @@ use core.slice
 
 Expr :: union {
     Literal: LiteralExpr;
+    Logical: LogicalExpr;
     Binary: BinaryExpr;
     Unary: UnaryExpr;
     Group: GroupExpr;
@@ -16,6 +17,9 @@ Expr :: union {
         switch expr {
             case e: .Literal {
                 return visitor->visit_literal_expr(e);
+            }
+            case e: .Logical {
+                return visitor->visit_logical_expr(e);
             }
             case e: .Binary {
                 return visitor->visit_binary_expr(e);
@@ -65,8 +69,15 @@ AssignExpr :: struct {
     value: &Expr;
 }
 
+LogicalExpr :: struct {
+    left: &Expr;
+    operator: Token;
+    right: &Expr;
+}
+
 Visitor :: interface (t: $T) {
     { t->visit_literal_expr(LiteralExpr.{}) } -> Result(LoxObject, RuntimeError);
+    { t->visit_logical_expr(LogicalExpr.{}) } -> Result(LoxObject, RuntimeError);
     { t->visit_binary_expr(BinaryExpr.{}) } -> Result(LoxObject, RuntimeError);
     { t->visit_unary_expr(UnaryExpr.{}) } -> Result(LoxObject, RuntimeError);
     { t->visit_group_expr(GroupExpr.{}) } -> Result(LoxObject, RuntimeError);

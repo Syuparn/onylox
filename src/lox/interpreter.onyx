@@ -198,6 +198,28 @@ Interpreter :: struct {
         return .{Err=RuntimeError.{token=expr.operator, message="Unreachable (should be onylox bug)."}};
     }
 
+    visit_logical_expr :: (interpreter: &Interpreter, expr: LogicalExpr) -> Result(LoxObject, RuntimeError) {
+        left := interpreter->evaluate(*expr.left)->forward_err();
+
+        if (expr.operator.type == TokenType.OR) {
+            if interpreter->_is_truthy(left) {
+                return .{Ok=left};
+            } else {
+                return interpreter->evaluate(*expr.right);
+            }
+        }
+
+        if (expr.operator.type == TokenType.AND) {
+            if !interpreter->_is_truthy(left) {
+                return .{Ok=left};
+            } else {
+                return interpreter->evaluate(*expr.right);
+            }
+        }
+
+        return .{Err=RuntimeError.{token=expr.operator, message="Unreachable (should be onylox bug)."}};
+    }
+
     visit_unary_expr :: (interpreter: &Interpreter, expr: UnaryExpr) -> Result(LoxObject, RuntimeError) {
         right := interpreter->evaluate(*expr.right)->forward_err();
 

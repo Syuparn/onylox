@@ -1,0 +1,9 @@
+print "left" or "right";
+print false or "right";
+print "left" or false;
+print false or false;
+
+print "left" and "right";
+print false and "right";
+print "left" and false;
+print false and false;

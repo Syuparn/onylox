@@ -253,6 +253,42 @@ test_interpreter_evaluate :: () => {
             }},
             expected=LoxObject.{Bool=true},
         },
+        .{
+            title="logical or (left)",
+            expr=Expr.{Logical=LogicalExpr.{
+                left=&Expr.{Literal=LiteralExpr.{value=TokenLiteral.{Number=6}}},
+                operator=Token.{type=TokenType.OR, lexeme="or"},
+                right=&Expr.{Literal=LiteralExpr.{value=TokenLiteral.{Number=3}}},
+            }},
+            expected=LoxObject.{Number=6},
+        },
+        .{
+            title="logical or (right)",
+            expr=Expr.{Logical=LogicalExpr.{
+                left=&Expr.{Literal=LiteralExpr.{value=TokenLiteral.{Bool=false}}},
+                operator=Token.{type=TokenType.OR, lexeme="or"},
+                right=&Expr.{Literal=LiteralExpr.{value=TokenLiteral.{Number=3}}},
+            }},
+            expected=LoxObject.{Number=3},
+        },
+        .{
+            title="logical and (right)",
+            expr=Expr.{Logical=LogicalExpr.{
+                left=&Expr.{Literal=LiteralExpr.{value=TokenLiteral.{Number=6}}},
+                operator=Token.{type=TokenType.AND, lexeme="and"},
+                right=&Expr.{Literal=LiteralExpr.{value=TokenLiteral.{Number=3}}},
+            }},
+            expected=LoxObject.{Number=3},
+        },
+        .{
+            title="logical and (left)",
+            expr=Expr.{Logical=LogicalExpr.{
+                left=&Expr.{Literal=LiteralExpr.{value=TokenLiteral.{Bool=false}}},
+                operator=Token.{type=TokenType.AND, lexeme="and"},
+                right=&Expr.{Literal=LiteralExpr.{value=TokenLiteral.{Number=3}}},
+            }},
+            expected=LoxObject.{Bool=false},
+        },
     ];
 
     for tt: tests {
