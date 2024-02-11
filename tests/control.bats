@@ -30,3 +30,13 @@ setup() {
   run wasmer run --mapdir tests:tests onylox.wasm -- tests/testdata/src/while.lox
   assert_output "0"$'\n'"1"$'\n'"2"
 }
+
+@test "for" {
+  run wasmer run --mapdir tests:tests onylox.wasm -- tests/testdata/src/for.lox
+  assert_output "0"$'\n'"1"$'\n'"2"
+}
+
+@test "for (complicated)" {
+  run wasmer run --mapdir tests:tests onylox.wasm -- tests/testdata/src/for_complicated.lox
+  assert_output "0"$'\n'"1"$'\n'"2"$'\n'"0"
+}

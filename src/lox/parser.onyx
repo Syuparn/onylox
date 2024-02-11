@@ -74,6 +74,9 @@ Parser :: struct {
         if p->_match(TokenType.WHILE) {
             return p->_while_statement();
         }
+        if p->_match(TokenType.FOR) {
+            return p->_for_statement();
+        }
         return p->_expression_statement();
     }
 
@@ -103,6 +106,74 @@ Parser :: struct {
         // HACK: alloc stmt, otherwise it is deleted after return
         body_ptr := p->_alloc_stmt(body); // NOTE: move does not work with reassigning...
         return Stmt.{While=WhileStmt.{condition=condition, body=body_ptr}};
+    }
+
+    _for_statement :: (p: &Parser) -> ? Stmt {
+        p->_consume(TokenType.LEFT_PAREN, "Expect '(' after 'for'.")?;
+
+        // for (<HERE>;;)
+        initializer: &Stmt = null;
+        if p->_match(TokenType.SEMICOLON) {
+            // do nothing
+        } elseif p->_match(TokenType.VAR) {
+            stmt := p->_var_declaration()?;
+            // HACK: alloc stmt, otherwise it is deleted after return
+            initializer = p->_alloc_stmt(stmt);
+        } else {
+            stmt := p->_expression_statement()?;
+            initializer = p->_alloc_stmt(stmt);
+        }
+
+        // for (;<HERE>;)
+        condition: &Expr = null;
+        if !p->_check(TokenType.SEMICOLON) {
+            expr := p->_expression()?;
+            condition = p->_alloc_expr(expr);
+        }
+        p->_consume(TokenType.SEMICOLON, "Expect ';' after loop condition.")?;
+
+        // for (;;<HERE>)
+        increment: &Expr = null;
+        if !p->_check(TokenType.RIGHT_PAREN) {
+            expr := p->_expression()?;
+            increment = p->_alloc_expr(expr);
+        }
+        p->_consume(TokenType.RIGHT_PAREN, "Expect ')' after for clauses.");
+
+        body := p->_statement()?;
+
+        // NOTE: desugar for statement and represent it as while loop
+        if increment != null {
+            inner_body_ptr := p->_alloc_stmt(body);
+            increment_stmt := Stmt.{Expression=ExpressionStmt.{expression=*increment}};
+            increment_stmt_ptr := p->_alloc_stmt(increment_stmt);
+
+            body = Stmt.{Block=BlockStmt.{
+                statements=from_array((&Stmt).[
+                    inner_body_ptr,
+                    increment_stmt_ptr,
+                ], p.pool.allocator),
+            }};
+        }
+
+        if condition == null {
+            lit := Expr.{Literal=LiteralExpr.{value=TokenLiteral.{Bool=true}}};
+            condition = p->_alloc_expr(lit);
+        }
+        inner_body_ptr := p->_alloc_stmt(body);
+        body = Stmt.{While=WhileStmt.{condition=*condition, body=inner_body_ptr}};
+
+        if initializer != null {
+            inner_body_ptr := p->_alloc_stmt(body);
+            body = Stmt.{Block=BlockStmt.{
+                statements=from_array((&Stmt).[
+                    initializer,
+                    inner_body_ptr,
+                ], p.pool.allocator),
+            }};
+        }
+
+        return body;
     }
 
     _print_statement :: (p: &Parser) -> ? Stmt {

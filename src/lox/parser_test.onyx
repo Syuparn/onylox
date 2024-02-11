@@ -452,6 +452,122 @@ test_parser_parse_error :: () => {
                 Token.{type=TokenType.EOF, lexeme=""},
             ]),
         },
+        .{
+            title="for (no left paren)",
+            tokens=to_list(Token.[
+                Token.{type=TokenType.FOR, lexeme="for"},
+
+                Token.{type=TokenType.VAR, lexeme="var"},
+                Token.{type=TokenType.IDENTIFIER, lexeme="i"},
+                Token.{type=TokenType.EQUAL, lexeme="="},
+                Token.{type=TokenType.NUMBER, lexeme="0", literal=TokenLiteral.{Number=0}},
+                Token.{type=TokenType.SEMICOLON, lexeme=";"},
+
+                Token.{type=TokenType.IDENTIFIER, lexeme="i"},
+                Token.{type=TokenType.LESS, lexeme="<"},
+                Token.{type=TokenType.NUMBER, lexeme="5", literal=TokenLiteral.{Number=5}},
+                Token.{type=TokenType.SEMICOLON, lexeme=";"},
+
+                Token.{type=TokenType.IDENTIFIER, lexeme="i"},
+                Token.{type=TokenType.EQUAL, lexeme="="},
+                Token.{type=TokenType.IDENTIFIER, lexeme="i"},
+                Token.{type=TokenType.PLUS, lexeme="+"},
+                Token.{type=TokenType.NUMBER, lexeme="1", literal=TokenLiteral.{Number=1}},
+
+                Token.{type=TokenType.RIGHT_PAREN, lexeme=")"},
+                Token.{type=TokenType.PRINT, lexeme="print"},
+                Token.{type=TokenType.IDENTIFIER, lexeme="i"},
+                Token.{type=TokenType.SEMICOLON, lexeme=";"},
+                Token.{type=TokenType.EOF, lexeme=""},
+            ]),
+        },
+        .{
+            title="for (no right paren)",
+            tokens=to_list(Token.[
+                Token.{type=TokenType.FOR, lexeme="for"},
+                Token.{type=TokenType.LEFT_PAREN, lexeme="("},
+
+                Token.{type=TokenType.VAR, lexeme="var"},
+                Token.{type=TokenType.IDENTIFIER, lexeme="i"},
+                Token.{type=TokenType.EQUAL, lexeme="="},
+                Token.{type=TokenType.NUMBER, lexeme="0", literal=TokenLiteral.{Number=0}},
+                Token.{type=TokenType.SEMICOLON, lexeme=";"},
+
+                Token.{type=TokenType.IDENTIFIER, lexeme="i"},
+                Token.{type=TokenType.LESS, lexeme="<"},
+                Token.{type=TokenType.NUMBER, lexeme="5", literal=TokenLiteral.{Number=5}},
+                Token.{type=TokenType.SEMICOLON, lexeme=";"},
+
+                Token.{type=TokenType.IDENTIFIER, lexeme="i"},
+                Token.{type=TokenType.EQUAL, lexeme="="},
+                Token.{type=TokenType.IDENTIFIER, lexeme="i"},
+                Token.{type=TokenType.PLUS, lexeme="+"},
+                Token.{type=TokenType.NUMBER, lexeme="1", literal=TokenLiteral.{Number=1}},
+
+                Token.{type=TokenType.PRINT, lexeme="print"},
+                Token.{type=TokenType.IDENTIFIER, lexeme="i"},
+                Token.{type=TokenType.SEMICOLON, lexeme=";"},
+                Token.{type=TokenType.EOF, lexeme=""},
+            ]),
+        },
+        .{
+            title="for (no first semicolon)",
+            tokens=to_list(Token.[
+                Token.{type=TokenType.FOR, lexeme="for"},
+                Token.{type=TokenType.LEFT_PAREN, lexeme="("},
+
+                Token.{type=TokenType.VAR, lexeme="var"},
+                Token.{type=TokenType.IDENTIFIER, lexeme="i"},
+                Token.{type=TokenType.EQUAL, lexeme="="},
+                Token.{type=TokenType.NUMBER, lexeme="0", literal=TokenLiteral.{Number=0}},
+
+                Token.{type=TokenType.IDENTIFIER, lexeme="i"},
+                Token.{type=TokenType.LESS, lexeme="<"},
+                Token.{type=TokenType.NUMBER, lexeme="5", literal=TokenLiteral.{Number=5}},
+                Token.{type=TokenType.SEMICOLON, lexeme=";"},
+
+                Token.{type=TokenType.IDENTIFIER, lexeme="i"},
+                Token.{type=TokenType.EQUAL, lexeme="="},
+                Token.{type=TokenType.IDENTIFIER, lexeme="i"},
+                Token.{type=TokenType.PLUS, lexeme="+"},
+                Token.{type=TokenType.NUMBER, lexeme="1", literal=TokenLiteral.{Number=1}},
+
+                Token.{type=TokenType.RIGHT_PAREN, lexeme=")"},
+                Token.{type=TokenType.PRINT, lexeme="print"},
+                Token.{type=TokenType.IDENTIFIER, lexeme="i"},
+                Token.{type=TokenType.SEMICOLON, lexeme=";"},
+                Token.{type=TokenType.EOF, lexeme=""},
+            ]),
+        },
+        .{
+            title="for (no second semicolon)",
+            tokens=to_list(Token.[
+                Token.{type=TokenType.FOR, lexeme="for"},
+                Token.{type=TokenType.LEFT_PAREN, lexeme="("},
+
+                Token.{type=TokenType.VAR, lexeme="var"},
+                Token.{type=TokenType.IDENTIFIER, lexeme="i"},
+                Token.{type=TokenType.EQUAL, lexeme="="},
+                Token.{type=TokenType.NUMBER, lexeme="0", literal=TokenLiteral.{Number=0}},
+                Token.{type=TokenType.SEMICOLON, lexeme=";"},
+
+                Token.{type=TokenType.IDENTIFIER, lexeme="i"},
+                Token.{type=TokenType.LESS, lexeme="<"},
+                Token.{type=TokenType.NUMBER, lexeme="5", literal=TokenLiteral.{Number=5}},
+
+                Token.{type=TokenType.IDENTIFIER, lexeme="i"},
+                Token.{type=TokenType.EQUAL, lexeme="="},
+                Token.{type=TokenType.IDENTIFIER, lexeme="i"},
+                Token.{type=TokenType.PLUS, lexeme="+"},
+                Token.{type=TokenType.NUMBER, lexeme="1", literal=TokenLiteral.{Number=1}},
+
+                Token.{type=TokenType.RIGHT_PAREN, lexeme=")"},
+                Token.{type=TokenType.PRINT, lexeme="print"},
+                Token.{type=TokenType.IDENTIFIER, lexeme="i"},
+                Token.{type=TokenType.SEMICOLON, lexeme=";"},
+                Token.{type=TokenType.EOF, lexeme=""},
+            ]),
+        },
     ];
 
     for tt: tests {

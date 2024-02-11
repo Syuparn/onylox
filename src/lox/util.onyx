@@ -41,3 +41,13 @@ list_count :: ($T: type_expr, list: list.List(T)) -> i32 {
 
     return c;
 }
+
+// NOTE: list.from_array does not work...
+// TODO: replace with the original
+from_array :: (arr: [] $T, allocator := context.allocator) -> list.List(T) {
+    l := list.make(T, allocator);
+    for& arr {
+        list.push_end(&l, *it);
+    }
+    return l;
+}

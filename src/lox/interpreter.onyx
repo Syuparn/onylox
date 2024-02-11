@@ -218,7 +218,7 @@ Interpreter :: struct {
             }
         }
 
-        return .{Err=RuntimeError.{token=expr.operator, message="Unreachable (should be onylox bug)."}};
+        return .{Err=RuntimeError.{token=expr.operator, message="Unreachable error in binary expr (should be onylox bug)."}};
     }
 
     visit_logical_expr :: (interpreter: &Interpreter, expr: LogicalExpr) -> Result(LoxObject, RuntimeError) {
@@ -240,7 +240,7 @@ Interpreter :: struct {
             }
         }
 
-        return .{Err=RuntimeError.{token=expr.operator, message="Unreachable (should be onylox bug)."}};
+        return .{Err=RuntimeError.{token=expr.operator, message="Unreachable error in logical expr (should be onylox bug)."}};
     }
 
     visit_unary_expr :: (interpreter: &Interpreter, expr: UnaryExpr) -> Result(LoxObject, RuntimeError) {
@@ -256,7 +256,7 @@ Interpreter :: struct {
             }
         }
 
-        return .{Err=RuntimeError.{token=expr.operator, message="Unreachable (should be onylox bug)."}};
+        return .{Err=RuntimeError.{token=expr.operator, message="Unreachable error in unary expr (should be onylox bug)."}};
     }
 
     visit_variable_expr :: (interpreter: &Interpreter, expr: VariableExpr) -> Result(LoxObject, RuntimeError) {
