@@ -1,0 +1,9 @@
+if (2 + 2 != 4) {
+    print "right";
+}
+
+if (1) {
+    print "truthy";
+} else {
+    print "falsy";
+}

@@ -52,6 +52,21 @@ Interpreter :: struct {
         return expr->accept(interpreter);
     }
 
+    visit_if_stmt :: (interpreter: &Interpreter, stmt: IfStmt) -> Result(void, RuntimeError) {
+        cond_result := interpreter->evaluate(stmt.condition);
+        // NOTE: forward_err cannot be used because returned type is different
+        if cond_result->is_err() {
+            return .{Err=cond_result->err()?};
+        }
+        cond := cond_result->ok()?;
+
+        if interpreter->_is_truthy(cond) {
+            return interpreter->execute(*stmt.then_branch);
+        } else {
+            return interpreter->execute(*stmt.else_branch);
+        }
+    }
+
     visit_expression_stmt :: (interpreter: &Interpreter, stmt: ExpressionStmt) -> Result(void, RuntimeError) {
         result := interpreter->evaluate(stmt.expression);
         // NOTE: forward_err cannot be used because returned type is different

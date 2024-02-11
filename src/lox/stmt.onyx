@@ -8,9 +8,13 @@ Stmt :: union {
     Print: PrintStmt;
     Var: VarStmt;
     Block: BlockStmt;
+    If: IfStmt;
 
     accept :: (stmt: Stmt, visitor: $T) -> Result(void, RuntimeError) where StmtVisitor(T) {
         switch stmt {
+            case s: .If {
+                return visitor->visit_if_stmt(s);
+            }
             case s: .Expression {
                 return visitor->visit_expression_stmt(s);
             }
@@ -31,6 +35,12 @@ ExpressionStmt :: struct {
     expression: Expr;
 }
 
+IfStmt :: struct {
+    condition: Expr;
+    then_branch: &Stmt;
+    else_branch: &Stmt;
+}
+
 PrintStmt :: struct {
     expression: Expr;
 }
@@ -46,6 +56,7 @@ BlockStmt :: struct {
 }
 
 StmtVisitor :: interface (t: $T) {
+    { t->visit_if_stmt(IfStmt.{}) } -> Result(void, RuntimeError);
     { t->visit_expression_stmt(ExpressionStmt.{}) } -> Result(void, RuntimeError);
     { t->visit_print_stmt(PrintStmt.{}) } -> Result(void, RuntimeError);
     { t->visit_var_stmt(VarStmt.{}) } -> Result(void, RuntimeError);

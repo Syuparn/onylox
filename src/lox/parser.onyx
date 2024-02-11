@@ -62,6 +62,9 @@ Parser :: struct {
     }
 
     _statement :: (p: &Parser) -> ? Stmt {
+        if p->_match(TokenType.IF) {
+            return p->_if_statement();
+        }
         if p->_match(TokenType.PRINT) {
             return p->_print_statement();
         }
@@ -69,6 +72,23 @@ Parser :: struct {
             return Stmt.{Block=BlockStmt.{statements=p->_block()?}};
         }
         return p->_expression_statement();
+    }
+
+    _if_statement :: (p: &Parser) -> ? Stmt {
+        p->_consume(TokenType.LEFT_PAREN, "Expect '(' after 'if'.")?;
+        condition := p->_expression()?;
+        p->_consume(TokenType.RIGHT_PAREN, "Expect ')' after if condition.");
+
+        then_branch := p->_statement()?;
+        // HACK: alloc stmt, otherwise it is deleted after return
+        then_ptr := p->_alloc_stmt(then_branch);
+        else_ptr: &Stmt = null;
+        if (p->_match(TokenType.ELSE)) {
+            else_branch := p->_statement()?;
+            else_ptr = p->_alloc_stmt(else_branch);
+        }
+
+        return Stmt.{If=IfStmt.{condition=condition, then_branch=then_ptr, else_branch=else_ptr}};
     }
 
     _print_statement :: (p: &Parser) -> ? Stmt {
