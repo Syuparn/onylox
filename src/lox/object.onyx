@@ -1,8 +1,14 @@
+use core {Result}
+use core.list
+
+#load "./interpreter"
+
 LoxObject :: union {
     String: str;
     Number: f64;
     Bool: bool;
     Null: void;
+    Callable: LoxCallable;
 }
 
 #operator == (l1, l2: LoxObject) -> bool {
@@ -51,4 +57,85 @@ LoxObject :: union {
             return false;
         }
     }
+}
+
+LoxCallable :: union {
+    BuiltIn: BuiltInCallable;
+
+    call :: (c: LoxCallable, interpreter: &Interpreter, arguments: list.List(LoxObject)) -> Result(LoxObject, RuntimeError) {
+        switch c {
+            case b: .BuiltIn {
+                return b->call(arguments);
+            }
+        }
+    }
+
+    arity :: (c: LoxCallable) -> u8 {
+        switch c {
+            case b: .BuiltIn {
+                return b->arity();
+            }
+        }
+    }
+}
+
+BuiltInCallable :: union {
+    // NOTE: function literal member cannot be used because it cannot be printed (and all use clause gets panicked!)
+    BuiltInClock: BuiltInClockFunc;
+    BuiltInDummy: BuiltInDummyFunc;
+
+    arity :: (c: BuiltInCallable) -> u8 {
+        switch c {
+            case f: .BuiltInClock {
+                return f->arity();
+            }
+            case f: .BuiltInDummy {
+                return f->arity();
+            }
+        }
+    }
+
+    call :: (c: BuiltInCallable, arguments: list.List(LoxObject)) -> Result(LoxObject, RuntimeError) {
+        switch c {
+            case f: .BuiltInClock {
+                return f->call(arguments);
+            }
+            case f: .BuiltInDummy {
+                return f->call(arguments);
+            }
+        }
+    }
+}
+
+BuiltInClockFunc :: struct {
+    _dummy: bool;
+
+    arity :: (f: BuiltInClockFunc) -> u8 {
+        return 0;
+    }
+
+    call :: (f: BuiltInClockFunc, arguments: list.List(LoxObject)) -> Result(LoxObject, RuntimeError) {
+        return .{Err=RuntimeError.{message="TODO: impl?"}};
+    }
+}
+
+// NOTE: defined only for unit test
+BuiltInDummyFunc :: struct {
+    _dummy: bool;
+
+    arity :: (f: BuiltInDummyFunc) -> u8 {
+        return 0;
+    }
+
+    call :: (f: BuiltInDummyFunc, arguments: list.List(LoxObject)) -> Result(LoxObject, RuntimeError) {
+        return .{Ok=LoxObject.{String="dummy"}};
+    }
+}
+
+new_clock_func_object :: () -> LoxObject {
+    return LoxObject.{Callable=LoxCallable.{BuiltIn=BuiltInCallable.{BuiltInClock=BuiltInClockFunc.{}}}};
+}
+
+new_dummy_func_object :: () -> LoxObject {
+    return LoxObject.{Callable=LoxCallable.{BuiltIn=BuiltInCallable.{BuiltInDummy=BuiltInDummyFunc.{}}}};
 }

@@ -342,6 +342,10 @@ Parser :: struct {
             arguments->push_end(p->_alloc_expr(expr));
 
             while p->_match(TokenType.COMMA) {
+                if arguments->count() >= 255 {
+                    p->_error(p->_peek(), "Can't have more than 255 arguments");
+                }
+
                 expr := p->_expression()?;
                 // HACK: alloc expr, otherwise it is deleted after return
                 arguments->push_end(p->_alloc_expr(expr));

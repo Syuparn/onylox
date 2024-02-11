@@ -311,14 +311,25 @@ test_interpreter_evaluate_variable :: () => {
             expr=Expr.{Variable=VariableExpr.{name=Token.{type=TokenType.IDENTIFIER, lexeme="foo"}}},
             expected=LoxObject.{Number=1},
         },
+        .{
+            title="call built-in dummy func",
+            expr=Expr.{Call=CallExpr.{
+                callee=&Expr.{Variable=VariableExpr.{name=Token.{type=TokenType.IDENTIFIER, lexeme="dummy"}}},
+                paren=Token.{type=TokenType.RIGHT_PAREN, lexeme=")"},
+                arguments=to_pointer_list(Expr.[]),
+            }},
+            expected=LoxObject.{String="dummy"},
+        },
     ];
 
     for tt: tests {
         interpreter := Interpreter.{};
         // prepare: set value
         interpreter.environment->define("foo", tt.expected);
+        interpreter.environment->define("dummy", new_dummy_func_object());
 
-        actual := interpreter->evaluate(tt.expr)->expect(tprintf("{}: must not be error", tt.title));
+        result := interpreter->evaluate(tt.expr);
+        actual := result->expect(tprintf("{}: must not be error: {}", tt.title, result->err()));
 
         assert(actual == tt.expected, tprintf("{}: \"{}\" != \"{}\"", tt.title, actual, tt.expected));
     }
@@ -521,10 +532,33 @@ test_interpreter_evaluate_error :: () => {
             }},
             expected=RuntimeError.{token=Token.{type=TokenType.IDENTIFIER, lexeme="foo"}, message="Undefined varible 'foo'."},
         },
+        .{
+            title="call non-callable",
+            expr=Expr.{Call=CallExpr.{
+                callee=&Expr.{Literal=LiteralExpr.{value=TokenLiteral.{Number=1}}},
+                paren=Token.{type=TokenType.RIGHT_PAREN, lexeme=")"},
+                arguments=to_pointer_list(Expr.[]),
+            }},
+            expected=RuntimeError.{token=Token.{type=TokenType.RIGHT_PAREN, lexeme=")"}, message="Can only call functions and clauses."},
+        },
+        .{
+            title="arity is wrong",
+            expr=Expr.{Call=CallExpr.{
+                callee=&Expr.{Variable=VariableExpr.{name=Token.{type=TokenType.IDENTIFIER, lexeme="dummy"}}},
+                paren=Token.{type=TokenType.RIGHT_PAREN, lexeme=")"},
+                arguments=to_pointer_list(Expr.[
+                    Expr.{Literal=LiteralExpr.{value=TokenLiteral.{Number=1}}},
+                ]),
+            }},
+            expected=RuntimeError.{token=Token.{type=TokenType.RIGHT_PAREN, lexeme=")"}, message="Expected 0 arguments but got 1."},
+        },
     ];
 
     for tt: tests {
         interpreter := Interpreter.{};
+        // prepare dummy built-in function
+        interpreter.environment->define("dummy", new_dummy_func_object());
+
         actual := interpreter->evaluate(tt.expr);
         assert(actual->is_err(), tprintf("{}: must be an error", tt.title));
         e := actual->err()?;
@@ -659,6 +693,11 @@ test_interpreter_stringify :: () {
             title="number (int)",
             obj=LoxObject.{Number=1},
             expected="1",
+        },
+        .{
+            title="built-in function",
+            obj=LoxObject.{Callable=LoxCallable.{BuiltIn=BuiltInCallable.{}}},
+            expected="<native fn>",
         },
     ];
 

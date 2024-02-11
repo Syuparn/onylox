@@ -264,7 +264,27 @@ Interpreter :: struct {
     }
 
     visit_call_expr :: (interpreter: &Interpreter, expr: CallExpr) -> Result(LoxObject, RuntimeError) {
-        return .{Err=RuntimeError.{token=expr.paren, message="TODO: impl"}};
+        callee := interpreter->evaluate(*expr.callee)->forward_err();
+
+        arguments := list.make(LoxObject);
+        for argument_expr: expr.arguments->as_iter() {
+            argument := interpreter->evaluate(*argument_expr)->forward_err();
+            arguments->push_end(argument);
+        }
+
+        switch callee {
+            case f: .Callable {
+                if cast(u8) arguments->count() != f->arity() {
+                    // NOTE: u8 int should be casted, otherwise it is treated as char!
+                    return .{Err=RuntimeError.{token=expr.paren, message=tprintf("Expected {} arguments but got {}.", cast(i32) f->arity(), arguments->count())}};
+                }
+
+                return f->call(interpreter, arguments);
+            }
+            case #default {
+                return .{Err=RuntimeError.{token=expr.paren, message="Can only call functions and clauses."}};
+            }
+        }
     }
 
     _stringify :: (interpreter: &Interpreter, obj: LoxObject) -> str {
@@ -285,6 +305,9 @@ Interpreter :: struct {
             }
             case s: .String {
                 return s;
+            }
+            case f: .Callable {
+                return "<native fn>";
             }
         }
     }
@@ -334,5 +357,9 @@ Interpreter :: struct {
             }
         }
         return .{Ok=.{}};
+    }
+
+    _globals :: () -> Environment {
+
     }
 }
