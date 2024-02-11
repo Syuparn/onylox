@@ -1,5 +1,6 @@
 use core {Result}
 use core.list
+use core.time
 
 #load "./interpreter"
 
@@ -115,7 +116,8 @@ BuiltInClockFunc :: struct {
     }
 
     call :: (f: BuiltInClockFunc, arguments: list.List(LoxObject)) -> Result(LoxObject, RuntimeError) {
-        return .{Err=RuntimeError.{message="TODO: impl?"}};
+        now := time.now()->to_epoch();
+        return .{Ok=LoxObject.{Number=cast(f64) now}};
     }
 }
 

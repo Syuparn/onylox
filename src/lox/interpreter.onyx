@@ -12,7 +12,7 @@ use core.list
 use core.string
 
 Interpreter :: struct {
-    environment: Environment = Environment.{};
+    environment: Environment = Interpreter._globals();
 
     interpret :: (interpreter: &Interpreter, stmts: &list.List(Stmt)) => {
         for stmt: stmts->as_iter() {
@@ -360,6 +360,11 @@ Interpreter :: struct {
     }
 
     _globals :: () -> Environment {
+        environment := Environment.{};
 
+        // built-in functions
+        environment->define("clock", new_clock_func_object());
+
+        return environment;
     }
 }
