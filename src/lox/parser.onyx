@@ -71,6 +71,9 @@ Parser :: struct {
         if p->_match(TokenType.LEFT_BRACE) {
             return Stmt.{Block=BlockStmt.{statements=p->_block()?}};
         }
+        if p->_match(TokenType.WHILE) {
+            return p->_while_statement();
+        }
         return p->_expression_statement();
     }
 
@@ -89,6 +92,17 @@ Parser :: struct {
         }
 
         return Stmt.{If=IfStmt.{condition=condition, then_branch=then_ptr, else_branch=else_ptr}};
+    }
+
+    _while_statement :: (p: &Parser) -> ? Stmt {
+        p->_consume(TokenType.LEFT_PAREN, "Expect '(' after 'while'.")?;
+        condition := p->_expression()?;
+        p->_consume(TokenType.RIGHT_PAREN, "Expect ')' after condition.");
+
+        body := p->_statement()?;
+        // HACK: alloc stmt, otherwise it is deleted after return
+        body_ptr := p->_alloc_stmt(body); // NOTE: move does not work with reassigning...
+        return Stmt.{While=WhileStmt.{condition=condition, body=body_ptr}};
     }
 
     _print_statement :: (p: &Parser) -> ? Stmt {

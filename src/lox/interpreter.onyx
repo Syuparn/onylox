@@ -104,6 +104,29 @@ Interpreter :: struct {
         return interpreter->_execute_block(stmt.statements, Environment.{enclosing=env_ptr});
     }
 
+    visit_while_stmt :: (interpreter: &Interpreter, stmt: WhileStmt) -> Result(void, RuntimeError) {
+        while true {
+            // NOTE: this must be inside loop! (cond expr should be re-evaluated in each iteration)
+            cond_result := interpreter->evaluate(stmt.condition);
+            if cond_result->is_err() {
+                return .{Err=cond_result->err()?};
+            }
+            cond := cond_result->ok()?;
+
+            if !interpreter->_is_truthy(cond) {
+                break;
+            }
+
+            // forward_err cannot be used here??
+            result := interpreter->execute(*stmt.body);
+            if result->is_err() {
+                return .{Err=result->err()?};
+            }
+        }
+
+        return .{Ok=.{}};
+    }
+
     visit_assign_expr :: (interpreter: &Interpreter, expr: AssignExpr) -> Result(LoxObject, RuntimeError) {
         value := interpreter->evaluate(*expr.value)->forward_err();
         interpreter.environment->assign(expr.name, value)->forward_err();

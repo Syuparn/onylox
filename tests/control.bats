@@ -20,7 +20,13 @@ setup() {
   assert_output "left"$'\n'"right"$'\n'"left"$'\n'"false"$'\n'"right"$'\n'"false"$'\n'"false"$'\n'"false"
 }
 
+# TODO: add tests
 @test "shortcuts" {
   run wasmer run --mapdir tests:tests onylox.wasm -- tests/testdata/src/shortcuts.lox
   assert_output ""
+}
+
+@test "while" {
+  run wasmer run --mapdir tests:tests onylox.wasm -- tests/testdata/src/while.lox
+  assert_output "0"$'\n'"1"$'\n'"2"
 }

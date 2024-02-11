@@ -428,6 +428,30 @@ test_parser_parse_error :: () => {
                 Token.{type=TokenType.EOF, lexeme=""},
             ]),
         },
+.{
+            title="no left paren (while)",
+            tokens=to_list(Token.[
+                Token.{type=TokenType.WHILE, lexeme="while"},
+                Token.{type=TokenType.IDENTIFIER, lexeme="foo"},
+                Token.{type=TokenType.RIGHT_PAREN, lexeme=")"},
+                Token.{type=TokenType.PRINT, lexeme="print"},
+                Token.{type=TokenType.IDENTIFIER, lexeme="foo"},
+                Token.{type=TokenType.SEMICOLON, lexeme=";"},
+                Token.{type=TokenType.EOF, lexeme=""},
+            ]),
+        },
+        .{
+            title="no right paren (while)",
+            tokens=to_list(Token.[
+                Token.{type=TokenType.WHILE, lexeme="while"},
+                Token.{type=TokenType.LEFT_PAREN, lexeme="("},
+                Token.{type=TokenType.IDENTIFIER, lexeme="foo"},
+                Token.{type=TokenType.PRINT, lexeme="print"},
+                Token.{type=TokenType.IDENTIFIER, lexeme="foo"},
+                Token.{type=TokenType.SEMICOLON, lexeme=";"},
+                Token.{type=TokenType.EOF, lexeme=""},
+            ]),
+        },
     ];
 
     for tt: tests {
