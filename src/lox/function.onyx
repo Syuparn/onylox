@@ -7,6 +7,7 @@ use core.list
 
 LoxFunction :: struct {
     declaration: FunctionStmt;
+    closure: &Environment;
 
     call :: (f: LoxFunction, interpreter: &Interpreter, arguments: list.List(LoxObject)) -> Result(LoxObject, RuntimeError) {
         // NOTE: define arguments as l-value
@@ -14,8 +15,7 @@ LoxFunction :: struct {
 
         // create function scope
         // TODO: free pointer
-        env_ptr := context.allocator->move(interpreter.environment);
-        environment := Environment.{enclosing=env_ptr};
+        environment := Environment.{enclosing=f.closure};
 
         for i: 0..f.declaration.params->count() {
             environment->define(f.declaration.params->at(i).lexeme, *(&args)->at(i));

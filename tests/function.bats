@@ -40,5 +40,7 @@ setup() {
   assert_output "55"
 }
 
-# recursion
-# closure
+@test "closure" {
+  run wasmer run --mapdir tests:tests onylox.wasm -- tests/testdata/src/closure.lox
+  assert_output "1"$'\n'"2"$'\n'"3"
+}

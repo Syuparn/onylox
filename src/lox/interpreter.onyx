@@ -142,7 +142,11 @@ Interpreter :: struct {
     }
 
     visit_function_stmt :: (interpreter: &Interpreter, stmt: FunctionStmt) -> Result(void, RuntimeError) {
-        function := LoxObject.{Callable=LoxCallable.{Function=LoxFunction.{declaration=stmt}}};
+        // TODO: free unused environment
+        env_ptr := context.allocator->move(interpreter.environment);
+
+        // NOTE: Since Lox has lexical scopes, environment should be set when function is declared.
+        function := LoxObject.{Callable=LoxCallable.{Function=LoxFunction.{declaration=stmt, closure=env_ptr}}};
         interpreter.environment->define(stmt.name.lexeme, function);
         return .{Ok=.{}};
     }
