@@ -3,7 +3,7 @@
 #load "./runtime_error"
 #load "./token"
 
-use core { Result, tprintf }
+use core { printf, Result, tprintf }
 use core.map
 
 test_define :: () => {
@@ -177,23 +177,23 @@ test_get_at :: () => {
         title: str;
         name: str;
         env: Environment;
-        depth: u32;
+        distance: u32;
         expected: Result(LoxObject, RuntimeError);
     }
     tests := TestCase.[
         .{
-            title="depth 0",
+            title="distance 0",
             name="foo",
             env=Environment.{
                 value=map.literal(str, LoxObject, .[
                     .{"foo", LoxObject.{Number=123}},
                 ]),
             },
-            depth=0,
+            distance=0,
             expected=.{Ok=LoxObject.{Number=123}},
         },
         .{
-            title="depth 1",
+            title="distance 1",
             name="foo",
             env=Environment.{
                 enclosing=&Environment.{
@@ -203,11 +203,11 @@ test_get_at :: () => {
                 },
                 value=map.literal(str, LoxObject, .[]),
             },
-            depth=1,
+            distance=1,
             expected=.{Ok=LoxObject.{Number=123}},
         },
         .{
-            title="depth 1 (ignore shadowing)",
+            title="distance 1 (ignore shadowing)",
             name="foo",
             env=Environment.{
                 enclosing=&Environment.{
@@ -219,11 +219,11 @@ test_get_at :: () => {
                     .{"foo", LoxObject.{String="inner"}},
                 ]),
             },
-            depth=1,
+            distance=1,
             expected=.{Ok=LoxObject.{String="outer"}},
         },
         .{
-            title="depth 2 (ignore shadowing)",
+            title="distance 2 (ignore shadowing)",
             name="foo",
             env=Environment.{
                 enclosing=&Environment.{
@@ -240,13 +240,13 @@ test_get_at :: () => {
                     .{"foo", LoxObject.{String="inner"}},
                 ]),
             },
-            depth=2,
+            distance=2,
             expected=.{Ok=LoxObject.{String="global"}},
         },
     ];
 
     for tt: tests {
-        actual := tt.env->get_at(tt.depth, tt.name);
+        actual := tt.env->get_at(tt.distance, tt.name);
         assert(tprintf("{}", actual) == tprintf("{}", tt.expected) , tprintf("{}: {} != {}", tt.title, actual, tt.expected));
     }
 }
@@ -350,9 +350,92 @@ test_assign :: () => {
     }
 }
 
+test_assign_at :: () => {
+    TestCase :: struct {
+        title: str;
+        distance: u32;
+        token: Token;
+        value: LoxObject;
+        env: Environment;
+        expected_env: Environment;
+    }
+    tests := TestCase.[
+        .{
+            title="distance 0",
+            distance=0,
+            token=Token.{type=TokenType.IDENTIFIER, lexeme="foo"},
+            value=LoxObject.{String="new"},
+            env=Environment.{
+                value=map.literal(str, LoxObject, .[
+                    .{"foo", LoxObject.{Number=123}},
+                ]),
+            },
+            expected_env=Environment.{
+                value=map.literal(str, LoxObject, .[
+                    .{"foo", LoxObject.{String="new"}},
+                ]),
+            },
+        },
+        .{
+            title="distance 1",
+            distance=1,
+            token=Token.{type=TokenType.IDENTIFIER, lexeme="foo"},
+            value=LoxObject.{String="new"},
+            env=Environment.{
+                enclosing=&Environment.{
+                    value=map.literal(str, LoxObject, .[
+                        .{"foo", LoxObject.{Number=123}},
+                    ]),
+                },
+                value=map.literal(str, LoxObject, .[]),
+            },
+            expected_env=Environment.{
+                enclosing=&Environment.{
+                    value=map.literal(str, LoxObject, .[
+                        .{"foo", LoxObject.{String="new"}},
+                    ]),
+                },
+                value=map.literal(str, LoxObject, .[]),
+            },
+        },
+        .{
+            title="distance 1 (ignore shadowing)",
+            distance=1,
+            token=Token.{type=TokenType.IDENTIFIER, lexeme="foo"},
+            value=LoxObject.{String="new"},
+            env=Environment.{
+                enclosing=&Environment.{
+                    value=map.literal(str, LoxObject, .[
+                        .{"foo", LoxObject.{String="outer"}},
+                    ]),
+                },
+                value=map.literal(str, LoxObject, .[
+                    .{"foo", LoxObject.{String="inner"}},
+                ]),
+            },
+            expected_env=Environment.{
+                enclosing=&Environment.{
+                    value=map.literal(str, LoxObject, .[
+                        .{"foo", LoxObject.{String="new"}},
+                    ]),
+                },
+                value=map.literal(str, LoxObject, .[
+                    .{"foo", LoxObject.{String="inner"}},
+                ]),
+            },
+        },
+    ];
+
+    for tt: tests {
+        tt.env->assign_at(tt.distance, tt.token, tt.value);
+        assert(tprintf("{}", tt.env) == tprintf("{}", tt.expected_env) , tprintf("{}: {} != {}", tt.title, tt.env, tt.expected_env));
+    }
+}
+
 main :: () {
     test_define();
     test_get();
-    test_assign();
     test_get_at();
+    test_assign();
+    test_assign_at();
 }

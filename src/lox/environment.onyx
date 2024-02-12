@@ -18,7 +18,7 @@ Environment :: struct {
     get_at :: (e: &Environment, distance: u32, name: str) -> Result(LoxObject, RuntimeError) {
         o := e->ancestor(distance).value->get(name);
         if is_empty(o) {
-            return .{Err=RuntimeError.{message=tprintf("Undefined varible '{}' (may be Onylox bug).", name)}};
+            return .{Err=RuntimeError.{message=tprintf("Undefined varible '{}'.", name)}};
         }
         return .{Ok=o?};
     }
@@ -53,6 +53,17 @@ Environment :: struct {
 
         if e.enclosing != null {
             return e.enclosing->assign(name, value);
+        }
+
+        return .{Err=RuntimeError.{token=name, message=tprintf("Undefined varible '{}'.", name.lexeme)}};
+    }
+
+    // HACK: returned LoxObject is not used (it is only defined for forward_err() method)
+    assign_at :: (e: &Environment, distance: u32, name: Token, value: LoxObject) -> Result(LoxObject, RuntimeError) {
+        env := e->ancestor(distance);
+        if env.value->has(name.lexeme) {
+            env.value->put(name.lexeme, value);
+            return .{Ok=.{}};
         }
 
         return .{Err=RuntimeError.{token=name, message=tprintf("Undefined varible '{}'.", name.lexeme)}};

@@ -12,9 +12,22 @@ use core.list
 use core.map
 use core.string
 
+new_interpreter :: () -> Interpreter {
+    globals := Interpreter._globals();
+    // TODO: free it
+    global_ptr := context.allocator->move(globals);
+
+    return Interpreter.{
+        environment=globals,
+        globals=global_ptr,
+        locals=map.literal(Expr, u32, .[]),
+    };
+}
+
 Interpreter :: struct {
-    environment: Environment = Interpreter._globals();
-    locals: Map(Expr, u32) = map.literal(Expr, u32, .[]);
+    environment: Environment;
+    globals: &Environment;
+    locals: Map(Expr, u32);
 
     interpret :: (interpreter: &Interpreter, stmts: &list.List(Stmt)) => {
         for stmt: stmts->as_iter() {
@@ -31,7 +44,7 @@ Interpreter :: struct {
         return stmt->accept(interpreter);
     }
 
-    resolve :: (interpreter: &Interpreter, expr: Expr, depth: u32) {
+    resolve :: (interpreter: &Interpreter, expr: Expr, depth: u32) => {
         interpreter.locals->put(expr, depth);
     }
 
@@ -159,7 +172,20 @@ Interpreter :: struct {
 
     visit_assign_expr :: (interpreter: &Interpreter, expr: AssignExpr) -> Result(LoxObject, RuntimeError) {
         value := interpreter->evaluate(*expr.value)->forward_err();
-        interpreter.environment->assign(expr.name, value)->forward_err();
+
+        distance := interpreter.locals->get(Expr.{Assign=expr});
+        if !is_empty(distance) {
+            result := interpreter.environment->assign_at(distance?, expr.name, value);
+            if result->is_err() {
+                return .{Err=result->err()?};
+            }
+        } else {
+            result := interpreter.globals->assign(expr.name, value);
+            if result->is_err() {
+                return .{Err=result->err()?};
+            }
+        }
+
         return .{Ok=value};
     }
 
@@ -297,9 +323,9 @@ Interpreter :: struct {
         expr := Expr.{Variable=var};
         distance := interpreter.locals->get(expr);
         if !is_empty(distance) {
-            interpreter.environment->get_at(distance?, name.lexeme);
+            return interpreter.environment->get_at(distance?, name.lexeme);
         }
-        return interpreter.environment->get(name);
+        return interpreter.globals->get(name);
     }
 
     visit_call_expr :: (interpreter: &Interpreter, expr: CallExpr) -> Result(LoxObject, RuntimeError) {

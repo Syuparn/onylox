@@ -6,19 +6,20 @@
 #load "./token"
 #load "./util"
 
-use core {Result}
+use core {printf, Result}
 use core.list
 use core.map
 
 // NOTE: return type LoxObject is not used
 Resolver :: struct {
-    interpreter: Interpreter;
-    scopes: list.List(Map(str, bool));
+    interpreter: &Interpreter;
+    // NOTE: map must be pointers assigning map copies values!
+    scopes: list.List(&Map(str, bool)) = list.make(&Map(str, bool));
 
     visit_block_stmt :: (r: &Resolver, stmt: BlockStmt) -> Result(void, RuntimeError) {
         r->_begin_scope();
 
-        result := r->_resolve(stmt.statements);
+        result := r->resolve(stmt.statements);
         if result->is_err() {
             return .{Err=result->err()?};
         }
@@ -30,7 +31,7 @@ Resolver :: struct {
     visit_var_stmt :: (r: &Resolver, stmt: VarStmt) -> Result(void, RuntimeError) {
         r->_declare(stmt.name);
         if !is_empty(stmt.initializer) {
-            result := r->_resolve(stmt.initializer?);
+            result := r->resolve(stmt.initializer?);
             if result->is_err() {
                 return .{Err=result->err()?};
             }
@@ -52,7 +53,7 @@ Resolver :: struct {
     }
 
     visit_expression_stmt :: (r: &Resolver, stmt: ExpressionStmt) -> Result(void, RuntimeError) {
-        result := r->_resolve(stmt.expression);
+        result := r->resolve(stmt.expression);
         if result->is_err() {
             return .{Err=result->err()?};
         }
@@ -60,19 +61,19 @@ Resolver :: struct {
     }
 
     visit_if_stmt :: (r: &Resolver, stmt: IfStmt) -> Result(void, RuntimeError) {
-        cond := r->_resolve(stmt.condition);
+        cond := r->resolve(stmt.condition);
         if cond->is_err() {
             return .{Err=cond->err()?};
         }
 
-        then := r->_resolve(*stmt.then_branch);
+        then := r->resolve(*stmt.then_branch);
         if then->is_err() {
             return .{Err=then->err()?};
         }
 
         if stmt.else_branch != null {
             // forward_err() cannot be used here?
-            result := r->_resolve(*stmt.else_branch);
+            result := r->resolve(*stmt.else_branch);
             if result->is_err() {
                 return .{Err=result->err()?};
             }
@@ -81,7 +82,7 @@ Resolver :: struct {
     }
 
     visit_print_stmt :: (r: &Resolver, stmt: PrintStmt) -> Result(void, RuntimeError) {
-        result := r->_resolve(stmt.expression);
+        result := r->resolve(stmt.expression);
         if result->is_err() {
             return .{Err=result->err()?};
         }
@@ -90,7 +91,7 @@ Resolver :: struct {
 
     visit_return_stmt :: (r: &Resolver, stmt: ReturnStmt) -> Result(void, RuntimeError) {
         if !is_empty(stmt.value) {
-            result := r->_resolve(stmt.value?);
+            result := r->resolve(stmt.value?);
             if result->is_err() {
                 return .{Err=result->err()?};
             }
@@ -99,12 +100,12 @@ Resolver :: struct {
     }
 
     visit_while_stmt :: (r: &Resolver, stmt: WhileStmt) -> Result(void, RuntimeError) {
-        cond := r->_resolve(stmt.condition);
+        cond := r->resolve(stmt.condition);
         if cond->is_err() {
             return .{Err=cond->err()?};
         }
 
-        result := r->_resolve(*stmt.body);
+        result := r->resolve(*stmt.body);
         if result->is_err() {
             return .{Err=result->err()?};
         }
@@ -113,16 +114,11 @@ Resolver :: struct {
     }
 
     visit_variable_expr :: (r: &Resolver, expr: VariableExpr) -> Result(LoxObject, RuntimeError) {
-        err := RuntimeError.{token=expr.name, message="Can't read local variable in its own initializer"};
-        if is_empty_list(Map(str, bool), r.scopes) {
-            return .{Err=err};
-        }
-        m := r.scopes.last.data;
-        if !m->has(expr.name.lexeme) {
-            return .{Err=err};
-        }
-        if !m->get(expr.name.lexeme)? {
-            return .{Err=err};
+        // NOTE: since Onyx does not short-cut logical operators, these conditions cannot be combined with &&
+        if !is_empty_list(&Map(str, bool), r.scopes) {
+            if (*r.scopes.last.data)->get(expr.name.lexeme) == Optional.make(false) {
+                return .{Err=RuntimeError.{token=expr.name, message="Can't read local variable in its own initializer"}};
+            }
         }
 
         r->_resolve_local(Expr.{Variable=expr}, expr.name);
@@ -130,28 +126,28 @@ Resolver :: struct {
     }
 
     visit_assign_expr :: (r: &Resolver, expr: AssignExpr) -> Result(LoxObject, RuntimeError) {
-        r->_resolve(*expr.value)->forward_err();
+        r->resolve(*expr.value)->forward_err();
         r->_resolve_local(Expr.{Assign=expr}, expr.name);
         return .{Ok=.{}};
     }
 
     visit_binary_expr :: (r: &Resolver, expr: BinaryExpr) -> Result(LoxObject, RuntimeError) {
-        r->_resolve(*expr.left)->forward_err();
-        r->_resolve(*expr.right)->forward_err();
+        r->resolve(*expr.left)->forward_err();
+        r->resolve(*expr.right)->forward_err();
         return .{Ok=.{}};
     }
 
     visit_call_expr :: (r: &Resolver, expr: CallExpr) -> Result(LoxObject, RuntimeError) {
-        r->_resolve(*expr.callee)->forward_err();
+        r->resolve(*expr.callee)->forward_err();
 
         for argument: expr.arguments->as_iter() {
-            r->_resolve(*argument)->forward_err();
+            r->resolve(*argument)->forward_err();
         }
         return .{Ok=.{}};
     }
 
     visit_group_expr :: (r: &Resolver, expr: GroupExpr) -> Result(LoxObject, RuntimeError) {
-        return r->_resolve(*expr.expression);
+        return r->resolve(*expr.expression);
     }
 
     visit_literal_expr :: (r: &Resolver, expr: LiteralExpr) -> Result(LoxObject, RuntimeError) {
@@ -159,17 +155,32 @@ Resolver :: struct {
     }
 
     visit_logical_expr :: (r: &Resolver, expr: LogicalExpr) -> Result(LoxObject, RuntimeError) {
-        r->_resolve(*expr.left)->forward_err();
-        r->_resolve(*expr.right)->forward_err();
+        r->resolve(*expr.left)->forward_err();
+        r->resolve(*expr.right)->forward_err();
         return .{Ok=.{}};
     }
 
     visit_unary_expr :: (r: &Resolver, expr: UnaryExpr) -> Result(LoxObject, RuntimeError) {
-        r->_resolve(*expr.right)->forward_err();
+        r->resolve(*expr.right)->forward_err();
         return .{Ok=.{}};
     }
 
-    _resolve :: #match {
+    resolve :: #match {
+        (r: &Resolver, statements: list.List(Stmt)) -> Result(void, RuntimeError) {
+            // NOTE: List#as_iter and List#count cannot be called from List($T) due to type mismatch
+            for i: 0..list_count(Stmt, statements) {
+                stmts := statements;
+                statement := *((&stmts)->at(i));
+
+                // forward_err() cannot be used here?
+                result := r->resolve(statement);
+                if result->is_err() {
+                    return .{Err=result->err()?};
+                }
+            }
+
+            return .{Ok=.{}};
+        },
         (r: &Resolver, statements: list.List(&Stmt)) -> Result(void, RuntimeError) {
             // NOTE: List#as_iter and List#count cannot be called from List($T) due to type mismatch
             for i: 0..list_count(&Stmt, statements) {
@@ -177,7 +188,7 @@ Resolver :: struct {
                 statement := *((&stmts)->at(i));
 
                 // forward_err() cannot be used here?
-                result := r->_resolve(*statement);
+                result := r->resolve(*statement);
                 if result->is_err() {
                     return .{Err=result->err()?};
                 }
@@ -200,7 +211,7 @@ Resolver :: struct {
             r->_define(param);
         }
 
-        result := r->_resolve(stmt.body);
+        result := r->resolve(stmt.body);
         if result->is_err() {
             return .{Err=result->err()?};
         }
@@ -211,7 +222,9 @@ Resolver :: struct {
     
     _begin_scope :: (r: &Resolver) => {
         m := map.literal(str, bool, .[]);
-        r.scopes->push_end(m);
+        // TODO: free it
+        map_ptr := context.allocator->move(m);
+        r.scopes->push_end(map_ptr);
     }
 
     _end_scope :: (r: &Resolver) => {
@@ -219,7 +232,7 @@ Resolver :: struct {
     }
 
     _declare :: (r: &Resolver, name: Token) => {
-        if is_empty_list(Map(str, bool), r.scopes) {
+        if is_empty_list(&Map(str, bool), r.scopes) {
             return;
         }
 
@@ -229,7 +242,7 @@ Resolver :: struct {
     }
 
     _define :: (r: &Resolver, name: Token) => {
-        if is_empty_list(Map(str, bool), r.scopes) {
+        if is_empty_list(&Map(str, bool), r.scopes) {
             return;
         }
 
@@ -238,9 +251,10 @@ Resolver :: struct {
     }
 
     _resolve_local :: (r: &Resolver, expr: Expr, name: Token) => {
-        i := r.scopes->count();
+        i := r.scopes->count() - 1;
         while i >= 0 {
-            if r.scopes->at(i)->has(name.lexeme) {
+            m := *r.scopes->at(i);
+            if m->has(name.lexeme) {
                 r.interpreter->resolve(expr, cast(u32) (r.scopes->count() - i - 1) /* NOTE: must be positive */);
                 return;
             }

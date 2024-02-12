@@ -8,13 +8,14 @@ use runtime.platform
 #load "./interpreter"
 #load "./options"
 #load "./parser"
+#load "./resolver"
 #load "./scanner"
 
 had_error := false;
 had_runtime_error := false;
 
 Lox :: struct {
-    interpreter: Interpreter = Interpreter.{};
+    interpreter: Interpreter = new_interpreter();
 
     main :: (l: &Lox, args: [][&]u8) => {
         __flush_stdio();
@@ -83,6 +84,14 @@ Lox :: struct {
             return .{};
         }
         stmts := result?;
+
+        resolver := Resolver.{interpreter=&l.interpreter};
+        r := resolver->resolve(stmts);
+        if r->is_err() {
+            err := r->err()?;
+            Lox.error(err.token, err.message);
+            return .{};
+        }
 
         l.interpreter->interpret(&stmts);
     }
