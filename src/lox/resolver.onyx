@@ -1,0 +1,251 @@
+#load "./expr"
+#load "./interpreter"
+#load "./object"
+#load "./runtime_error"
+#load "./stmt"
+#load "./token"
+#load "./util"
+
+use core {Result}
+use core.list
+use core.map
+
+// NOTE: return type LoxObject is not used
+Resolver :: struct {
+    interpreter: Interpreter;
+    scopes: list.List(Map(str, bool));
+
+    visit_block_stmt :: (r: &Resolver, stmt: BlockStmt) -> Result(void, RuntimeError) {
+        r->_begin_scope();
+
+        result := r->_resolve(stmt.statements);
+        if result->is_err() {
+            return .{Err=result->err()?};
+        }
+
+        r->_end_scope();
+        return .{Ok=.{}};
+    }
+
+    visit_var_stmt :: (r: &Resolver, stmt: VarStmt) -> Result(void, RuntimeError) {
+        r->_declare(stmt.name);
+        if !is_empty(stmt.initializer) {
+            result := r->_resolve(stmt.initializer?);
+            if result->is_err() {
+                return .{Err=result->err()?};
+            }
+        }
+        r->_define(stmt.name);
+        return .{Ok=.{}};
+    }
+
+    visit_function_stmt :: (r: &Resolver, stmt: FunctionStmt) -> Result(void, RuntimeError) {
+        r->_declare(stmt.name);
+        r->_define(stmt.name);
+
+        result := r->_resolve_function(stmt);
+        if result->is_err() {
+            return .{Err=result->err()?};
+        }
+
+        return .{Ok=.{}};
+    }
+
+    visit_expression_stmt :: (r: &Resolver, stmt: ExpressionStmt) -> Result(void, RuntimeError) {
+        result := r->_resolve(stmt.expression);
+        if result->is_err() {
+            return .{Err=result->err()?};
+        }
+        return .{Ok=.{}};
+    }
+
+    visit_if_stmt :: (r: &Resolver, stmt: IfStmt) -> Result(void, RuntimeError) {
+        cond := r->_resolve(stmt.condition);
+        if cond->is_err() {
+            return .{Err=cond->err()?};
+        }
+
+        then := r->_resolve(*stmt.then_branch);
+        if then->is_err() {
+            return .{Err=then->err()?};
+        }
+
+        if stmt.else_branch != null {
+            // forward_err() cannot be used here?
+            result := r->_resolve(*stmt.else_branch);
+            if result->is_err() {
+                return .{Err=result->err()?};
+            }
+        }
+        return .{Ok=.{}};
+    }
+
+    visit_print_stmt :: (r: &Resolver, stmt: PrintStmt) -> Result(void, RuntimeError) {
+        result := r->_resolve(stmt.expression);
+        if result->is_err() {
+            return .{Err=result->err()?};
+        }
+        return .{Ok=.{}};
+    }
+
+    visit_return_stmt :: (r: &Resolver, stmt: ReturnStmt) -> Result(void, RuntimeError) {
+        if !is_empty(stmt.value) {
+            result := r->_resolve(stmt.value?);
+            if result->is_err() {
+                return .{Err=result->err()?};
+            }
+        }
+        return .{Ok=.{}};
+    }
+
+    visit_while_stmt :: (r: &Resolver, stmt: WhileStmt) -> Result(void, RuntimeError) {
+        cond := r->_resolve(stmt.condition);
+        if cond->is_err() {
+            return .{Err=cond->err()?};
+        }
+
+        result := r->_resolve(*stmt.body);
+        if result->is_err() {
+            return .{Err=result->err()?};
+        }
+
+        return .{Ok=.{}};
+    }
+
+    visit_variable_expr :: (r: &Resolver, expr: VariableExpr) -> Result(LoxObject, RuntimeError) {
+        err := RuntimeError.{token=expr.name, message="Can't read local variable in its own initializer"};
+        if is_empty_list(Map(str, bool), r.scopes) {
+            return .{Err=err};
+        }
+        m := r.scopes.last.data;
+        if !m->has(expr.name.lexeme) {
+            return .{Err=err};
+        }
+        if !m->get(expr.name.lexeme)? {
+            return .{Err=err};
+        }
+
+        r->_resolve_local(Expr.{Variable=expr}, expr.name);
+        return .{Ok=.{}};
+    }
+
+    visit_assign_expr :: (r: &Resolver, expr: AssignExpr) -> Result(LoxObject, RuntimeError) {
+        r->_resolve(*expr.value)->forward_err();
+        r->_resolve_local(Expr.{Assign=expr}, expr.name);
+        return .{Ok=.{}};
+    }
+
+    visit_binary_expr :: (r: &Resolver, expr: BinaryExpr) -> Result(LoxObject, RuntimeError) {
+        r->_resolve(*expr.left)->forward_err();
+        r->_resolve(*expr.right)->forward_err();
+        return .{Ok=.{}};
+    }
+
+    visit_call_expr :: (r: &Resolver, expr: CallExpr) -> Result(LoxObject, RuntimeError) {
+        r->_resolve(*expr.callee)->forward_err();
+
+        for argument: expr.arguments->as_iter() {
+            r->_resolve(*argument)->forward_err();
+        }
+        return .{Ok=.{}};
+    }
+
+    visit_group_expr :: (r: &Resolver, expr: GroupExpr) -> Result(LoxObject, RuntimeError) {
+        return r->_resolve(*expr.expression);
+    }
+
+    visit_literal_expr :: (r: &Resolver, expr: LiteralExpr) -> Result(LoxObject, RuntimeError) {
+        return .{Ok=.{}};
+    }
+
+    visit_logical_expr :: (r: &Resolver, expr: LogicalExpr) -> Result(LoxObject, RuntimeError) {
+        r->_resolve(*expr.left)->forward_err();
+        r->_resolve(*expr.right)->forward_err();
+        return .{Ok=.{}};
+    }
+
+    visit_unary_expr :: (r: &Resolver, expr: UnaryExpr) -> Result(LoxObject, RuntimeError) {
+        r->_resolve(*expr.right)->forward_err();
+        return .{Ok=.{}};
+    }
+
+    _resolve :: #match {
+        (r: &Resolver, statements: list.List(&Stmt)) -> Result(void, RuntimeError) {
+            // NOTE: List#as_iter and List#count cannot be called from List($T) due to type mismatch
+            for i: 0..list_count(&Stmt, statements) {
+                stmts := statements;
+                statement := *((&stmts)->at(i));
+
+                // forward_err() cannot be used here?
+                result := r->_resolve(*statement);
+                if result->is_err() {
+                    return .{Err=result->err()?};
+                }
+            }
+
+            return .{Ok=.{}};
+        },
+        (r: &Resolver, statement: Stmt) -> Result(void, RuntimeError) {
+            return statement->accept(r);
+        },
+        (r: &Resolver, expr: Expr) -> Result(LoxObject, RuntimeError) {
+            return expr->accept(r);
+        },
+    }
+
+    _resolve_function :: (r: &Resolver, stmt: FunctionStmt) -> Result(void, RuntimeError) {
+        r->_begin_scope();
+        for param: stmt.params->as_iter() {
+            r->_declare(param);
+            r->_define(param);
+        }
+
+        result := r->_resolve(stmt.body);
+        if result->is_err() {
+            return .{Err=result->err()?};
+        }
+
+        r->_end_scope();
+        return .{Ok=.{}};
+    }
+    
+    _begin_scope :: (r: &Resolver) => {
+        m := map.literal(str, bool, .[]);
+        r.scopes->push_end(m);
+    }
+
+    _end_scope :: (r: &Resolver) => {
+        r.scopes->pop_end();
+    }
+
+    _declare :: (r: &Resolver, name: Token) => {
+        if is_empty_list(Map(str, bool), r.scopes) {
+            return;
+        }
+
+        scope := r.scopes.last.data;
+        // false means variable is declared but not ready yet
+        scope->put(name.lexeme, false);
+    }
+
+    _define :: (r: &Resolver, name: Token) => {
+        if is_empty_list(Map(str, bool), r.scopes) {
+            return;
+        }
+
+        scope := r.scopes.last.data;
+        scope->put(name.lexeme, true);
+    }
+
+    _resolve_local :: (r: &Resolver, expr: Expr, name: Token) => {
+        i := r.scopes->count();
+        while i >= 0 {
+            if r.scopes->at(i)->has(name.lexeme) {
+                r.interpreter->resolve(expr, cast(u32) (r.scopes->count() - i - 1) /* NOTE: must be positive */);
+                return;
+            }
+
+            i = i - 1;
+        }
+    }
+}

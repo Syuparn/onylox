@@ -1,3 +1,4 @@
+#load "./hash"
 #load "./runtime_error"
 #load "./token"
 
@@ -43,6 +44,40 @@ Expr :: union {
             }
         }
     }
+
+    hash :: (expr: Expr) -> u32 {
+        switch expr {
+            case e: .Literal {
+                return e._hash;
+            }
+            case e: .Logical {
+                return e._hash;
+            }
+            case e: .Binary {
+                return e._hash;
+            }
+            case e: .Unary {
+                return e._hash;
+            }
+            case e: .Group {
+                return e._hash;
+            }
+            case e: .Variable {
+                return e._hash;
+            }
+            case e: .Assign {
+                return e._hash;
+            }
+            case e: .Call {
+                return e._hash;
+            }
+        }
+    }
+}
+
+#operator == (expr1: Expr, expr2: Expr) -> bool {
+    // NOTE: exprs should be compared by identity (not equivalence), otherwise equivalent expr in different place are mistaken by resolver
+    return expr1->hash() == expr2->hash();
 }
 
 // NOTE: Expr should be a pointer, otherwise the struct initialization fails due to circular reference
@@ -50,40 +85,48 @@ BinaryExpr :: struct {
     left: &Expr;
     operator: Token;
     right: &Expr;
+    _hash: u32 = new_hash();
 }
 
 UnaryExpr :: struct {
     operator: Token;
     right: &Expr;
+    _hash: u32 = new_hash();
 }
 
 LiteralExpr :: struct {
     value: TokenLiteral;
+    _hash: u32 = new_hash();
 }
 
 GroupExpr :: struct {
     expression: &Expr;
+    _hash: u32 = new_hash();
 }
 
 VariableExpr :: struct {
     name: Token;
+    _hash: u32 = new_hash();
 }
 
 AssignExpr :: struct {
     name: Token;
     value: &Expr;
+    _hash: u32 = new_hash();
 }
 
 LogicalExpr :: struct {
     left: &Expr;
     operator: Token;
     right: &Expr;
+    _hash: u32 = new_hash();
 }
 
 CallExpr :: struct {
     callee: &Expr;
     paren: Token;
     arguments: list.List(&Expr);
+    _hash: u32 = new_hash();
 }
 
 Visitor :: interface (t: $T) {

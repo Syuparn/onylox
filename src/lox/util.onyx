@@ -51,3 +51,8 @@ from_array :: (arr: [] $T, allocator := context.allocator) -> list.List(T) {
     }
     return l;
 }
+
+// NOTE: List#empty cannot be called from List($T) due to type mismatch
+is_empty_list :: ($T: type_expr, list: list.List(T)) -> bool {
+    return list.first == null;
+}

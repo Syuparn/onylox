@@ -9,10 +9,12 @@
 use core
 use core { printf, println, Result, tprintf }
 use core.list
+use core.map
 use core.string
 
 Interpreter :: struct {
     environment: Environment = Interpreter._globals();
+    locals: Map(Expr, u32) = map.literal(Expr, u32, .[]);
 
     interpret :: (interpreter: &Interpreter, stmts: &list.List(Stmt)) => {
         for stmt: stmts->as_iter() {
@@ -27,6 +29,10 @@ Interpreter :: struct {
 
     execute :: (interpreter: &Interpreter, stmt: Stmt) -> Result(void, RuntimeError) {
         return stmt->accept(interpreter);
+    }
+
+    resolve :: (interpreter: &Interpreter, expr: Expr, depth: u32) {
+        interpreter.locals->put(expr, depth);
     }
 
     execute_block :: (interpreter: &Interpreter, statements: list.List(&Stmt), environment: Environment) -> Result(void, RuntimeError) {
@@ -284,7 +290,16 @@ Interpreter :: struct {
     }
 
     visit_variable_expr :: (interpreter: &Interpreter, expr: VariableExpr) -> Result(LoxObject, RuntimeError) {
-        return interpreter.environment->get(expr.name);
+        return interpreter->_look_up_variable(expr.name, expr);
+    }
+
+    _look_up_variable :: (interpreter: &Interpreter, name: Token, var: VariableExpr) -> Result(LoxObject, RuntimeError) {
+        expr := Expr.{Variable=var};
+        distance := interpreter.locals->get(expr);
+        if !is_empty(distance) {
+            interpreter.environment->get_at(distance?, name.lexeme);
+        }
+        return interpreter.environment->get(name);
     }
 
     visit_call_expr :: (interpreter: &Interpreter, expr: CallExpr) -> Result(LoxObject, RuntimeError) {

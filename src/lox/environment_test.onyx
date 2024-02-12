@@ -172,6 +172,85 @@ test_get :: () => {
     }
 }
 
+test_get_at :: () => {
+    TestCase :: struct {
+        title: str;
+        name: str;
+        env: Environment;
+        depth: u32;
+        expected: Result(LoxObject, RuntimeError);
+    }
+    tests := TestCase.[
+        .{
+            title="depth 0",
+            name="foo",
+            env=Environment.{
+                value=map.literal(str, LoxObject, .[
+                    .{"foo", LoxObject.{Number=123}},
+                ]),
+            },
+            depth=0,
+            expected=.{Ok=LoxObject.{Number=123}},
+        },
+        .{
+            title="depth 1",
+            name="foo",
+            env=Environment.{
+                enclosing=&Environment.{
+                    value=map.literal(str, LoxObject, .[
+                        .{"foo", LoxObject.{Number=123}},
+                    ]),
+                },
+                value=map.literal(str, LoxObject, .[]),
+            },
+            depth=1,
+            expected=.{Ok=LoxObject.{Number=123}},
+        },
+        .{
+            title="depth 1 (ignore shadowing)",
+            name="foo",
+            env=Environment.{
+                enclosing=&Environment.{
+                    value=map.literal(str, LoxObject, .[
+                        .{"foo", LoxObject.{String="outer"}},
+                    ]),
+                },
+                value=map.literal(str, LoxObject, .[
+                    .{"foo", LoxObject.{String="inner"}},
+                ]),
+            },
+            depth=1,
+            expected=.{Ok=LoxObject.{String="outer"}},
+        },
+        .{
+            title="depth 2 (ignore shadowing)",
+            name="foo",
+            env=Environment.{
+                enclosing=&Environment.{
+                    enclosing=&Environment.{
+                        value=map.literal(str, LoxObject, .[
+                            .{"foo", LoxObject.{String="global"}},
+                        ]),
+                    },
+                    value=map.literal(str, LoxObject, .[
+                        .{"foo", LoxObject.{String="outer"}},
+                    ]),
+                },
+                value=map.literal(str, LoxObject, .[
+                    .{"foo", LoxObject.{String="inner"}},
+                ]),
+            },
+            depth=2,
+            expected=.{Ok=LoxObject.{String="global"}},
+        },
+    ];
+
+    for tt: tests {
+        actual := tt.env->get_at(tt.depth, tt.name);
+        assert(tprintf("{}", actual) == tprintf("{}", tt.expected) , tprintf("{}: {} != {}", tt.title, actual, tt.expected));
+    }
+}
+
 test_assign :: () => {
     TestCase :: struct {
         title: str;
@@ -275,4 +354,5 @@ main :: () {
     test_define();
     test_get();
     test_assign();
+    test_get_at();
 }

@@ -15,6 +15,22 @@ Environment :: struct {
         e.value->put(name, value);
     }
 
+    get_at :: (e: &Environment, distance: u32, name: str) -> Result(LoxObject, RuntimeError) {
+        o := e->ancestor(distance).value->get(name);
+        if is_empty(o) {
+            return .{Err=RuntimeError.{message=tprintf("Undefined varible '{}' (may be Onylox bug).", name)}};
+        }
+        return .{Ok=o?};
+    }
+
+    ancestor :: (e: &Environment, distance: u32) -> Environment {
+        environment := *e;
+        for i: 0..distance {
+            environment = *environment.enclosing;
+        }
+        return environment;
+    }
+
     get :: (e: &Environment, name: Token) -> Result(LoxObject, RuntimeError) {
         if e.value->has(name.lexeme) {
             return .{Ok=e.value->get(name.lexeme)?};

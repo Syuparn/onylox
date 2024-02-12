@@ -44,3 +44,8 @@ setup() {
   run wasmer run --mapdir tests:tests onylox.wasm -- tests/testdata/src/closure.lox
   assert_output "1"$'\n'"2"$'\n'"3"
 }
+
+@test "lexical scope" {
+  run wasmer run --mapdir tests:tests onylox.wasm -- tests/testdata/src/lexical_scope.lox
+  assert_output "global"$'\n'"global"
+}

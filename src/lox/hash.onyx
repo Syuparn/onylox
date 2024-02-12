@@ -1,0 +1,7 @@
+// HACK: use auto-increment value as hash (this is very naive implementation and not thread-safe!)
+_hash_value: u32 = 0
+
+new_hash :: () -> u32 {
+    _hash_value += 1;
+    return _hash_value;
+}

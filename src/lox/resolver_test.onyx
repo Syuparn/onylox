@@ -1,0 +1,5 @@
+#load "./resolver.onyx"
+
+main :: () {
+    // TODO: add tests
+}
