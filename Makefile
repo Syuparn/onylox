@@ -4,7 +4,6 @@ build:
 
 .PHONY: test
 test: test-unit test-integration
-	@echo "test"
 
 .PHONY: test-integration
 test-integration: build

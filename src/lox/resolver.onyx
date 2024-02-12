@@ -15,6 +15,7 @@ Resolver :: struct {
     interpreter: &Interpreter;
     // NOTE: map must be pointers assigning map copies values!
     scopes: list.List(&Map(str, bool)) = list.make(&Map(str, bool));
+    current_function: FunctionType = FunctionType.NONE;
 
     visit_block_stmt :: (r: &Resolver, stmt: BlockStmt) -> Result(void, RuntimeError) {
         r->_begin_scope();
@@ -44,7 +45,7 @@ Resolver :: struct {
         r->_declare(stmt.name);
         r->_define(stmt.name);
 
-        result := r->_resolve_function(stmt);
+        result := r->_resolve_function(stmt, FunctionType.FUNCTION);
         if result->is_err() {
             return .{Err=result->err()?};
         }
@@ -90,6 +91,10 @@ Resolver :: struct {
     }
 
     visit_return_stmt :: (r: &Resolver, stmt: ReturnStmt) -> Result(void, RuntimeError) {
+        if r.current_function == FunctionType.NONE {
+            return .{Err=RuntimeError.{token=stmt.keyword, message="Can't return from top-level code."}};
+        }
+
         if !is_empty(stmt.value) {
             result := r->resolve(stmt.value?);
             if result->is_err() {
@@ -204,7 +209,11 @@ Resolver :: struct {
         },
     }
 
-    _resolve_function :: (r: &Resolver, stmt: FunctionStmt) -> Result(void, RuntimeError) {
+    _resolve_function :: (r: &Resolver, stmt: FunctionStmt, type: FunctionType) -> Result(void, RuntimeError) {
+        enclosing_function := r.current_function;
+        r.current_function = type;
+        defer r.current_function = enclosing_function;
+
         r->_begin_scope();
         for param: stmt.params->as_iter() {
             r->_declare(param);
@@ -237,6 +246,11 @@ Resolver :: struct {
         }
 
         scope := r.scopes.last.data;
+
+        if scope->has(name.lexeme) {
+            Lox.error(name, "Already a variable with this name in this scope.");
+        }
+
         // false means variable is declared but not ready yet
         scope->put(name.lexeme, false);
     }
@@ -262,4 +276,10 @@ Resolver :: struct {
             i = i - 1;
         }
     }
+}
+
+#local
+FunctionType :: enum {
+    NONE;
+    FUNCTION;
 }
