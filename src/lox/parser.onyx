@@ -32,6 +32,10 @@ Parser :: struct {
     }
 
     _declaration :: (p: &Parser) -> ? Stmt {
+        if p->_match(TokenType.CLASS) {
+            return p->_class_declaration();
+        }
+
         if p->_match(TokenType.FUN) {
             return p->_function("function");
         }
@@ -50,6 +54,22 @@ Parser :: struct {
             return o?;
         }
         p->_synchronize();
+    }
+
+    _class_declaration :: (p: &Parser) -> ? Stmt {
+        name := p->_consume(TokenType.IDENTIFIER, "Expect class name.")?;
+        p->_consume(TokenType.LEFT_BRACE, "Expect '{' before class body.")?;
+
+        methods := list.make(&FunctionStmt);
+        while !p->_check(TokenType.RIGHT_BRACE) && !p->_is_at_end() {
+            e := p->_function("method")?;
+            f := e.Function->expect(tprintf("e must be functionStmt: {}", e));
+            f_ptr := p->_alloc_func(f);
+            methods->push_end(f_ptr);
+        }
+
+        p->_consume(TokenType.RIGHT_BRACE, "Expect '}' after class body.");
+        return Stmt.{Class=ClassStmt.{name=name, methods=methods}};
     }
 
     _var_declaration :: (p: &Parser) -> ? Stmt {
@@ -526,6 +546,10 @@ Parser :: struct {
 
     _alloc_stmt :: macro (p: &Parser, stmt: Stmt) -> &Stmt {
         return p.pool.allocator->move(stmt);
+    }
+
+    _alloc_func :: macro (p: &Parser, f: FunctionStmt) -> &FunctionStmt {
+        return p.pool.allocator->move(f);
     }
 }
 

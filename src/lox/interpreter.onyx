@@ -137,6 +137,13 @@ Interpreter :: struct {
         return interpreter->execute_block(stmt.statements, Environment.{enclosing=env_ptr});
     }
 
+    visit_class_stmt :: (interpreter: &Interpreter, stmt: ClassStmt) -> Result(void, RuntimeError) {
+        interpreter.environment->define(stmt.name.lexeme, LoxObject.{Null=.{}});
+        klass := LoxObject.{Callable=LoxCallable.{Class=LoxClass.{name=stmt.name.lexeme}}};
+        interpreter.environment->assign(stmt.name, klass);
+        return .{Ok=.{}};
+    }
+
     visit_while_stmt :: (interpreter: &Interpreter, stmt: WhileStmt) -> Result(void, RuntimeError) {
         while true {
             // NOTE: this must be inside loop! (cond expr should be re-evaluated in each iteration)
@@ -379,7 +386,13 @@ Interpreter :: struct {
                     case ff: .Function {
                         return tprintf("<fn {}>", ff.declaration.name.lexeme);
                     }
+                    case c: .Class {
+                        return c.name;
+                    }
                 }
+            }
+            case i: .Instance {
+                return tprintf("{} instance", i.klass.name);
             }
         }
     }

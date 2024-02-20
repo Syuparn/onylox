@@ -29,6 +29,12 @@ Resolver :: struct {
         return .{Ok=.{}};
     }
 
+    visit_class_stmt :: (r: &Resolver, stmt: ClassStmt) -> Result(void, RuntimeError) {
+        r->_declare(stmt.name);
+        r->_define(stmt.name);
+        return .{Ok=.{}};
+    }
+
     visit_var_stmt :: (r: &Resolver, stmt: VarStmt) -> Result(void, RuntimeError) {
         r->_declare(stmt.name);
         if !is_empty(stmt.initializer) {

@@ -1,0 +1,5 @@
+#load "./class"
+
+LoxInstance :: struct {
+    klass: LoxClass;
+}

@@ -8,6 +8,7 @@ Stmt :: union {
     Print: PrintStmt;
     Var: VarStmt;
     Block: BlockStmt;
+    Class: ClassStmt;
     If: IfStmt;
     While: WhileStmt;
     Function: FunctionStmt;
@@ -29,6 +30,9 @@ Stmt :: union {
             }
             case s: .Block {
                 return visitor->visit_block_stmt(s);
+            }
+            case s: .Class {
+                return visitor->visit_class_stmt(s);
             }
             case s: .While {
                 return visitor->visit_while_stmt(s);
@@ -67,6 +71,11 @@ BlockStmt :: struct {
     statements: list.List(&Stmt);
 }
 
+ClassStmt :: struct {
+    name: Token;
+    methods: list.List(&FunctionStmt);
+}
+
 WhileStmt :: struct {
     condition: Expr;
     body: &Stmt;
@@ -89,6 +98,7 @@ StmtVisitor :: interface (t: $T) {
     { t->visit_print_stmt(PrintStmt.{}) } -> Result(void, RuntimeError);
     { t->visit_var_stmt(VarStmt.{}) } -> Result(void, RuntimeError);
     { t->visit_block_stmt(BlockStmt.{}) } -> Result(void, RuntimeError);
+    { t->visit_class_stmt(ClassStmt.{}) } -> Result(void, RuntimeError);
     { t->visit_while_stmt(WhileStmt.{}) } -> Result(void, RuntimeError);
     { t->visit_function_stmt(FunctionStmt.{}) } -> Result(void, RuntimeError);
     { t->visit_return_stmt(ReturnStmt.{}) } -> Result(void, RuntimeError);

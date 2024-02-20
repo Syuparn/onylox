@@ -1,0 +1,16 @@
+#load "./instance"
+#load "./runtime_error"
+
+use core { Result }
+
+LoxClass :: struct {
+    name: str;
+
+    call :: (c: LoxClass) -> Result(LoxObject, RuntimeError) {
+        return .{Ok=LoxObject.{Instance=LoxInstance.{klass=c}}};
+    }
+
+    arity :: (c: LoxClass) -> u8 {
+        return 0;
+    }
+}

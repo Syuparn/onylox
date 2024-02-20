@@ -2,8 +2,10 @@ use core {Result}
 use core.list
 use core.time
 
+#load "./class"
 #load "./function"
 #load "./interpreter"
+#load "./instance"
 
 LoxObject :: union {
     String: str;
@@ -11,6 +13,7 @@ LoxObject :: union {
     Bool: bool;
     Null: void;
     Callable: LoxCallable;
+    Instance: LoxInstance;
 }
 
 #operator == (l1, l2: LoxObject) -> bool {
@@ -64,6 +67,7 @@ LoxObject :: union {
 LoxCallable :: union {
     BuiltIn: BuiltInCallable;
     Function: LoxFunction;
+    Class: LoxClass;
 
     call :: (c: LoxCallable, interpreter: &Interpreter, arguments: list.List(LoxObject)) -> Result(LoxObject, RuntimeError) {
         switch c {
@@ -72,6 +76,9 @@ LoxCallable :: union {
             }
             case f: .Function {
                 return f->call(interpreter, arguments);
+            }
+            case cc: .Class {
+                return cc->call();
             }
         }
     }
@@ -83,6 +90,9 @@ LoxCallable :: union {
             }
             case f: .Function {
                 return f->arity();
+            }
+            case cc: .Class {
+                return cc->arity();
             }
         }
     }

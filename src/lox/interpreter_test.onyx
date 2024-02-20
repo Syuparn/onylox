@@ -713,6 +713,16 @@ test_interpreter_stringify :: () {
             }}}},
             expected="<fn foo>",
         },
+        .{
+            title="class",
+            obj=LoxObject.{Callable=LoxCallable.{Class=LoxClass.{name="Foo"}}},
+            expected="Foo",
+        },
+        .{
+            title="instance",
+            obj=LoxObject.{Instance=LoxInstance.{klass=LoxClass.{name="Foo"}}},
+            expected="Foo instance",
+        },
     ];
 
     for tt: tests {
