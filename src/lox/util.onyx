@@ -3,7 +3,7 @@ use core.alloc.fixed
 
 to_list :: (values: []$T) -> list.List(T) {
     l := list.make(T);
-    for value: values {
+    for value in values {
         l->push_end(value);
     }
     return l;
@@ -12,7 +12,7 @@ to_list :: (values: []$T) -> list.List(T) {
 // HACK: pointers CANNOT BE FREED!
 to_pointer_list :: (values: []$T) -> list.List(&T) {
     l := list.make(&T);
-    for value: values {
+    for value in values {
         value_ptr := context.allocator->move(value);
         l->push_end(value_ptr);
     }

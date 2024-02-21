@@ -274,7 +274,7 @@ Parser :: struct {
             value := p->_assignment()?;
 
             switch expr {
-                case e: .Variable {
+                case .Variable as e {
                     name := e.name;
                     // HACK: alloc expr, otherwise it is deleted after return
                     value_ptr := p->_alloc_expr(value); // NOTE: move does not work with reassigning...
@@ -387,6 +387,10 @@ Parser :: struct {
         while true {
             if p->_match(TokenType.LEFT_PAREN) {
                 expr = p->_finish_call(expr)?;
+            } elseif p->_match(TokenType.DOT) {
+                name := p->_consume(TokenType.IDENTIFIER, "Expect property name after '.'.")?;
+                expr_ptr := p->_alloc_expr(expr);
+                expr = Expr.{Get=GetExpr.{object=expr_ptr, name=name}};
             } else {
                 break;
             }
@@ -505,7 +509,7 @@ Parser :: struct {
     }
 
     _match :: (p: &Parser, types: ..TokenType) -> bool {
-        for type: types {
+        for type in types {
             if p->_check(type) {
                 p->_advance();
                 return true;

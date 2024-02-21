@@ -19,9 +19,9 @@ TokenLiteral :: union {
 
 #operator == (l1, l2: TokenLiteral) -> bool {
     switch l1 {
-        case s1: .String {
+        case .String as s1 {
             switch l2 {
-                case s2: .String {
+                case .String as s2 {
                     return s1 == s2;
                 }
                 case #default {
@@ -29,9 +29,9 @@ TokenLiteral :: union {
                 }
             }
         }
-        case n1: .Number {
+        case .Number as n1 {
             switch l2 {
-                case n2: .Number {
+                case .Number as n2 {
                     return n1 == n2;
                 }
                 case #default {
@@ -39,9 +39,9 @@ TokenLiteral :: union {
                 }
             }
         }
-        case b1: .Bool {
+        case .Bool as b1 {
             switch l2 {
-                case b2: .Bool {
+                case .Bool as b2 {
                     return b1 == b2;
                 }
                 case #default {
@@ -49,9 +49,9 @@ TokenLiteral :: union {
                 }
             }
         }
-        case _n1: .Null {
+        case .Null as _n1 {
             switch l2 {
-                case _n2: .Null {
+                case .Null as _n2 {
                     return true;
                 }
                 case #default {

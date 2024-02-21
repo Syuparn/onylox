@@ -14,3 +14,8 @@ setup() {
   run wasmer run --mapdir tests:tests onylox.wasm -- tests/testdata/src/instance.lox
   assert_output "Bagel instance"
 }
+
+@test "undefined property" {
+  run wasmer run --mapdir tests:tests onylox.wasm -- tests/testdata/src/instance_undefined_property.lox
+  assert_output "Undefined property bar."$'\n'"[line 4]"
+}

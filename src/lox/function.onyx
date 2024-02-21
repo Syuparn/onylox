@@ -18,7 +18,7 @@ LoxFunction :: struct {
         // TODO: free pointer
         environment := Environment.{enclosing=f.closure};
 
-        for i: 0..f.declaration.params->count() {
+        for i in 0..f.declaration.params->count() {
             environment->define(f.declaration.params->at(i).lexeme, *(&args)->at(i));
         }
 

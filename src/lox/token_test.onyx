@@ -17,7 +17,7 @@ test_token_to_string :: () => {
         .{token=Token.{type=TokenType.NIL, lexeme="nil", literal=TokenLiteral.{Null=.{}}, line=1}, expected="NIL nil Null"},
     ];
 
-    for tt: tests {
+    for tt in tests {
         assert(tprintf("{}", tt.token) == tt.expected, tprintf("\"{}\" != \"{}\"", tprintf("{}", tt.token), tt.expected));
     }
 }

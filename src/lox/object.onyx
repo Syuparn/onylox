@@ -18,9 +18,9 @@ LoxObject :: union {
 
 #operator == (l1, l2: LoxObject) -> bool {
     switch l1 {
-        case s1: .String {
+        case .String as s1 {
             switch l2 {
-                case s2: .String {
+                case .String as s2 {
                     return s1 == s2;
                 }
                 case #default {
@@ -28,9 +28,9 @@ LoxObject :: union {
                 }
             }
         }
-        case n1: .Number {
+        case .Number as n1 {
             switch l2 {
-                case n2: .Number {
+                case .Number as n2 {
                     return n1 == n2;
                 }
                 case #default {
@@ -38,9 +38,9 @@ LoxObject :: union {
                 }
             }
         }
-        case b1: .Bool {
+        case .Bool as b1 {
             switch l2 {
-                case b2: .Bool {
+                case .Bool as b2 {
                     return b1 == b2;
                 }
                 case #default {
@@ -48,9 +48,9 @@ LoxObject :: union {
                 }
             }
         }
-        case _n1: .Null {
+        case .Null as _n1 {
             switch l2 {
-                case _n2: .Null {
+                case .Null as _n2 {
                     return true;
                 }
                 case #default {
@@ -71,13 +71,13 @@ LoxCallable :: union {
 
     call :: (c: LoxCallable, interpreter: &Interpreter, arguments: list.List(LoxObject)) -> Result(LoxObject, RuntimeError) {
         switch c {
-            case b: .BuiltIn {
+            case .BuiltIn as b {
                 return b->call(arguments);
             }
-            case f: .Function {
+            case .Function as f {
                 return f->call(interpreter, arguments);
             }
-            case cc: .Class {
+            case .Class as cc {
                 return cc->call();
             }
         }
@@ -85,13 +85,13 @@ LoxCallable :: union {
 
     arity :: (c: LoxCallable) -> u8 {
         switch c {
-            case b: .BuiltIn {
+            case .BuiltIn as b {
                 return b->arity();
             }
-            case f: .Function {
+            case .Function as f {
                 return f->arity();
             }
-            case cc: .Class {
+            case .Class as cc {
                 return cc->arity();
             }
         }
@@ -105,10 +105,10 @@ BuiltInCallable :: union {
 
     arity :: (c: BuiltInCallable) -> u8 {
         switch c {
-            case f: .BuiltInClock {
+            case .BuiltInClock as f {
                 return f->arity();
             }
-            case f: .BuiltInDummy {
+            case .BuiltInDummy as f {
                 return f->arity();
             }
         }
@@ -116,10 +116,10 @@ BuiltInCallable :: union {
 
     call :: (c: BuiltInCallable, arguments: list.List(LoxObject)) -> Result(LoxObject, RuntimeError) {
         switch c {
-            case f: .BuiltInClock {
+            case .BuiltInClock as f {
                 return f->call(arguments);
             }
-            case f: .BuiltInDummy {
+            case .BuiltInDummy as f {
                 return f->call(arguments);
             }
         }

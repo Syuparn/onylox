@@ -195,13 +195,13 @@ test_scan_tokens :: () => {
         },
     ];
 
-    for tt: tests {
+    for tt in tests {
         scanner := Scanner.{source=tt.source};
         actual := scanner->scan_tokens();
 
         assert(list.count(&actual) == tt.expected.length, tprintf("{} (size): {} != {}", tt.title, list.count(&actual), tt.expected.length));
 
-        for entry: iter.zip(iter.as_iter(tt.expected), actual->as_iter()) {
+        for entry in iter.zip(iter.as_iter(tt.expected), actual->as_iter()) {
             expected_token_type := entry.first;
             actual_token := entry.second;
 
@@ -236,7 +236,7 @@ test_scan_tokens_literals :: () => {
         },
     ];
 
-    for tt: tests {
+    for tt in tests {
         scanner := Scanner.{source=tt.source};
         actual := scanner->scan_tokens();
 

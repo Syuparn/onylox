@@ -288,9 +288,25 @@ test_parser_parse_expr :: () => {
                 value=&Expr.{Literal=LiteralExpr.{value=TokenLiteral.{Number=2}}},
             }},
         },
+        .{
+            title="parse get expr",
+            tokens=to_list(Token.[
+                Token.{type=TokenType.IDENTIFIER, lexeme="foo"},
+                Token.{type=TokenType.DOT, lexeme="."},
+                Token.{type=TokenType.IDENTIFIER, lexeme="bar"},
+                Token.{type=TokenType.SEMICOLON, lexeme=";"},
+                Token.{type=TokenType.EOF, lexeme=""},
+            ]),
+            expected=Expr.{Get=GetExpr.{
+                object=&Expr.{Variable=VariableExpr.{
+                    name=Token.{type=TokenType.IDENTIFIER, lexeme="foo"},
+                }},
+                name=Token.{type=TokenType.IDENTIFIER, lexeme="bar"},
+            }},
+        },
     ];
 
-    for tt: tests {
+    for tt in tests {
         parser := Parser.{tokens=tt.tokens};
         ast := parser->parse()->expect(tprintf("{}: expr must be empty", tt.title));
 
@@ -373,6 +389,15 @@ test_parser_parse_error :: () => {
             tokens=to_list(Token.[
                 Token.{type=TokenType.NUMBER, lexeme="1", literal=TokenLiteral.{Number=1}},
                 Token.{type=TokenType.PLUS, lexeme="+"},
+                Token.{type=TokenType.SEMICOLON, lexeme=";"},
+                Token.{type=TokenType.EOF, lexeme=""},
+            ]),
+        },
+        .{
+            title="no identifier in getexpr",
+            tokens=to_list(Token.[
+                Token.{type=TokenType.IDENTIFIER, lexeme="foo"},
+                Token.{type=TokenType.DOT, lexeme="."},
                 Token.{type=TokenType.SEMICOLON, lexeme=";"},
                 Token.{type=TokenType.EOF, lexeme=""},
             ]),
@@ -714,7 +739,7 @@ test_parser_parse_error :: () => {
         },
     ];
 
-    for tt: tests {
+    for tt in tests {
         parser := Parser.{tokens=tt.tokens};
 
         printf("debug: {}\n", tt.title);

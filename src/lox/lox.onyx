@@ -22,14 +22,14 @@ Lox :: struct {
 
         options := parse_commandline_options(args);
         switch options {
-            case h: .Help {
+            case .Help as h {
                 printf("Usage: onylox [script]\n");
             }
-            case r: .Repl {
+            case .Repl as r {
                 printf("> ");
                 l->_run_prompt();
             }
-            case n: .FileName {
+            case .FileName as n {
                 l->_run_file(n);
             }
             // never reached
@@ -53,11 +53,11 @@ Lox :: struct {
         r := os.open(path, os.OpenMode.Read);
 
         switch r {
-            case e: .Err {
+            case .Err as e {
                 printf("Error: failed to read \"{}\": {}\n", path, e);
                 os.exit(65);
             }
-            case file: .Ok {
+            case .Ok as file {
                 defer os.close(&file);
                 source := os.get_contents_from_file(&file);
                 l->_run(source);

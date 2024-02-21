@@ -57,7 +57,7 @@ test_define :: () => {
         },
     ];
 
-    for tt: tests {
+    for tt in tests {
         tt.env->define(tt.name, tt.obj);
 
         actual := tt.env.value;
@@ -166,7 +166,7 @@ test_get :: () => {
         },
     ];
 
-    for tt: tests {
+    for tt in tests {
         actual := tt.env->get(tt.token);
         assert(tprintf("{}", actual) == tprintf("{}", tt.expected) , tprintf("{}: {} != {}", tt.title, actual, tt.expected));
     }
@@ -245,7 +245,7 @@ test_get_at :: () => {
         },
     ];
 
-    for tt: tests {
+    for tt in tests {
         actual := tt.env->get_at(tt.distance, tt.name);
         assert(tprintf("{}", actual) == tprintf("{}", tt.expected) , tprintf("{}: {} != {}", tt.title, actual, tt.expected));
     }
@@ -343,7 +343,7 @@ test_assign :: () => {
         },
     ];
 
-    for tt: tests {
+    for tt in tests {
         actual := tt.env->assign(tt.token, tt.value);
         assert(tprintf("{}", actual) == tprintf("{}", tt.expected) , tprintf("{}: {} != {}", tt.title, actual, tt.expected));
         assert(tprintf("{}", tt.env) == tprintf("{}", tt.expected_env) , tprintf("{}: {} != {}", tt.title, tt.env, tt.expected_env));
@@ -426,7 +426,7 @@ test_assign_at :: () => {
         },
     ];
 
-    for tt: tests {
+    for tt in tests {
         tt.env->assign_at(tt.distance, tt.token, tt.value);
         assert(tprintf("{}", tt.env) == tprintf("{}", tt.expected_env) , tprintf("{}: {} != {}", tt.title, tt.env, tt.expected_env));
     }

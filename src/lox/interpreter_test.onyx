@@ -293,7 +293,7 @@ test_interpreter_evaluate :: () => {
         },
     ];
 
-    for tt: tests {
+    for tt in tests {
         interpreter := new_interpreter();
         actual := interpreter->evaluate(tt.expr)->expect(tprintf("{}: must not be error", tt.title));
 
@@ -324,7 +324,7 @@ test_interpreter_evaluate_variable :: () => {
         },
     ];
 
-    for tt: tests {
+    for tt in tests {
         interpreter := new_interpreter();
         // prepare: set value
         interpreter.environment->define("foo", tt.expected);
@@ -356,7 +356,7 @@ test_interpreter_evaluate_assign :: () => {
         },
     ];
 
-    for tt: tests {
+    for tt in tests {
         interpreter := new_interpreter();
         // prepare: set value
         interpreter.environment->define("foo", tt.init);
@@ -527,6 +527,14 @@ test_interpreter_evaluate_error :: () => {
             expected=RuntimeError.{token=Token.{type=TokenType.PLUS, lexeme="+"}, message="Operand must be two numbers or two strings."},
         },
         .{
+            title="get expr with non-instance",
+            expr=Expr.{Get=GetExpr.{
+                object=&Expr.{Literal=LiteralExpr.{value=TokenLiteral.{Number=123}}},
+                name=Token.{type=TokenType.IDENTIFIER, lexeme="foo"},
+            }},
+            expected=RuntimeError.{token=Token.{type=TokenType.IDENTIFIER, lexeme="foo"}, message="Only instances have properties."},
+        },
+        .{
             title="variable is not defined",
             expr=Expr.{Assign=AssignExpr.{
                 name=Token.{type=TokenType.IDENTIFIER, lexeme="foo"},
@@ -556,7 +564,7 @@ test_interpreter_evaluate_error :: () => {
         },
     ];
 
-    for tt: tests {
+    for tt in tests {
         interpreter := new_interpreter();
         // prepare dummy built-in function
         interpreter.globals->define("dummy", new_dummy_func_object());
@@ -607,7 +615,7 @@ test_interpreter_execute_error :: () => {
         },
     ];
 
-    for tt: tests {
+    for tt in tests {
         interpreter := new_interpreter();
         printf("{}\n", tt.title);
         _resolve(&interpreter, tt.stmt);
@@ -656,7 +664,7 @@ test_interpreter_interpret_error :: () => {
         },
     ];
 
-    for tt: tests {
+    for tt in tests {
         interpreter := new_interpreter();
         _resolve(&interpreter, tt.stmts);
 
@@ -725,7 +733,7 @@ test_interpreter_stringify :: () {
         },
     ];
 
-    for tt: tests {
+    for tt in tests {
         interpreter := new_interpreter();
         actual := interpreter->_stringify(tt.obj);
         assert(actual == tt.expected, tprintf("{}: \"{}\" != \"{}\"", tt.title, actual, tt.expected));

@@ -192,7 +192,7 @@ Scanner :: struct {
                 s->_add_token(TokenType.IDENTIFIER);
                 return;
             }
-            case type: .Some {
+            case .Some as type {
                 s->_add_token(type);
             }
         }

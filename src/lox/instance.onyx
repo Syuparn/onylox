@@ -1,5 +1,30 @@
 #load "./class"
+#load "./object"
+#load "./runtime_error"
+#load "./token"
+
+use core { Pair, Result, tprintf }
+use core.conv
+use core.list
 
 LoxInstance :: struct {
+    // NOTE: somehow map cannot used here... (otherwise all imports get crashed!)
+    fields: list.List(Pair(str, &LoxObject)) = list.make(Pair(str, &LoxObject));
     klass: LoxClass;
+
+    get :: (i: LoxInstance, name: Token) -> Result(LoxObject, RuntimeError) {
+        for field in i.fields->as_iter() {
+            if field.first == name.lexeme {
+                return .{Ok=*field.second};
+            }
+        }
+
+        return .{Err=RuntimeError.{token=name, message=tprintf("Undefined property {}.", name.lexeme)}};
+    }
+}
+
+// define format for printf
+@conv.Custom_Format_Proc.{ LoxInstance }
+(output: &conv.Format_Output, format: &conv.Format, i: &LoxInstance) {
+    conv.format(output, "{}", i.klass);
 }

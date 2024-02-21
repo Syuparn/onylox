@@ -37,15 +37,21 @@ ASTPrinter :: struct {
         return p->parenthesize("group", expr.expression);
     }
 
+    visit_get_expr :: (p: ASTPrinter, expr: GetExpr) -> Result(LoxObject, RuntimeError) {
+        obj := (*expr.object)->accept(p)->ok()?;
+        value := obj.String->unwrap();
+        return .{Ok=LoxObject.{String=tprintf("(get {} {})", value, expr.name.lexeme)}};
+    }
+
     _visit_literal_expr :: (p: ASTPrinter, expr: LiteralExpr) -> str {
         switch expr.value {
             case .Null {
                 return "nil";
             }
-            case s: .String {
+            case .String as s {
                 return tprintf("\"{}\"", s);
             }
-            case n: .Number {
+            case .Number as n {
                 return tprintf("{}", n);
             }
             case #default {
@@ -68,7 +74,7 @@ ASTPrinter :: struct {
         exprs := slice.make(&Expr, list_count(&Expr, expr.arguments) + 1);
         exprs[0] = expr.callee;
         i := 1;
-        for argument: expr.arguments->as_iter() {
+        for argument in expr.arguments->as_iter() {
             exprs[i] = argument;
             i = i + 1;
         }
@@ -86,7 +92,7 @@ ASTPrinter :: struct {
             buffer_memory := "                                                                                               ";
             buffer := string.buffer_make(buffer_memory, "(");
             string.buffer_append(&buffer, name);
-            for expr: exprs {
+            for expr in exprs {
                 string.buffer_append(&buffer, " ");
 
                 if expr == null {

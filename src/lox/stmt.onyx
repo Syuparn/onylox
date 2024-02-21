@@ -16,31 +16,31 @@ Stmt :: union {
 
     accept :: (stmt: Stmt, visitor: $T) -> Result(void, RuntimeError) where StmtVisitor(T) {
         switch stmt {
-            case s: .If {
+            case .If as s {
                 return visitor->visit_if_stmt(s);
             }
-            case s: .Expression {
+            case .Expression as s {
                 return visitor->visit_expression_stmt(s);
             }
-            case s: .Print {
+            case .Print as s {
                 return visitor->visit_print_stmt(s);
             }
-            case s: .Var {
+            case .Var as s {
                 return visitor->visit_var_stmt(s);
             }
-            case s: .Block {
+            case .Block as s {
                 return visitor->visit_block_stmt(s);
             }
-            case s: .Class {
+            case .Class as s {
                 return visitor->visit_class_stmt(s);
             }
-            case s: .While {
+            case .While as s {
                 return visitor->visit_while_stmt(s);
             }
-            case s: .Function {
+            case .Function as s {
                 return visitor->visit_function_stmt(s);
             }
-            case s: .Return {
+            case .Return as s {
                 return visitor->visit_return_stmt(s);
             }
         }
@@ -92,7 +92,9 @@ ReturnStmt :: struct {
     value: ?Expr;
 }
 
-StmtVisitor :: interface (t: $T) {
+StmtVisitor :: interface (T: type_expr) {
+    t as T;
+
     { t->visit_if_stmt(IfStmt.{}) } -> Result(void, RuntimeError);
     { t->visit_expression_stmt(ExpressionStmt.{}) } -> Result(void, RuntimeError);
     { t->visit_print_stmt(PrintStmt.{}) } -> Result(void, RuntimeError);

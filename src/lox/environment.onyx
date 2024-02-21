@@ -25,7 +25,7 @@ Environment :: struct {
 
     ancestor :: (e: &Environment, distance: u32) -> Environment {
         environment := *e;
-        for i: 0..distance {
+        for i in 0..distance {
             environment = *environment.enclosing;
         }
         return environment;

@@ -30,7 +30,7 @@ Interpreter :: struct {
     locals: Map(Expr, u32);
 
     interpret :: (interpreter: &Interpreter, stmts: &list.List(Stmt)) => {
-        for stmt: stmts->as_iter() {
+        for stmt in stmts->as_iter() {
             result := interpreter->execute(stmt);
             if result->is_err() {
                 err := result->err()?;
@@ -55,7 +55,7 @@ Interpreter :: struct {
         interpreter.environment = environment;
 
         // NOTE: List#as_iter and List#count cannot be called from List($T) due to type mismatch
-        for i: 0 .. list_count(&Stmt, statements) {
+        for i in 0 .. list_count(&Stmt, statements) {
             stmts := statements;
             statement := *((&stmts)->at(i));
             result := interpreter->execute(*statement);
@@ -198,13 +198,13 @@ Interpreter :: struct {
 
     visit_literal_expr :: (interpreter: &Interpreter, expr: LiteralExpr) -> Result(LoxObject, RuntimeError) {
         switch expr.value {
-            case s: .String {
+            case .String as s {
                 return .{Ok=LoxObject.{String=s}};
             }
-            case b: .Bool {
+            case .Bool as b {
                 return .{Ok=LoxObject.{Bool=b}};
             }
-            case n: .Number {
+            case .Number as n {
                 return .{Ok=LoxObject.{Number=n}};
             }
             case .Null {
@@ -215,6 +215,18 @@ Interpreter :: struct {
 
     visit_group_expr :: (interpreter: &Interpreter, expr: GroupExpr) -> Result(LoxObject, RuntimeError) {
         return interpreter->evaluate(*expr.expression);
+    }
+
+    visit_get_expr :: (interpreter: &Interpreter, expr: GetExpr) -> Result(LoxObject, RuntimeError) {
+        obj := interpreter->evaluate(*expr.object)->forward_err();
+        switch obj {
+            case .Instance as i {
+                return i->get(expr.name);
+            }
+            case #default {
+                return .{Err=RuntimeError.{token=expr.name, message="Only instances have properties."}};
+            }
+        }
     }
 
     visit_binary_expr :: (interpreter: &Interpreter, expr: BinaryExpr) -> Result(LoxObject, RuntimeError) {
@@ -237,17 +249,17 @@ Interpreter :: struct {
             }
             case TokenType.PLUS {
                 switch left {
-                    case ln: .Number {
+                    case .Number as ln {
                         switch right {
-                            case rn: .Number {
+                            case .Number as rn {
                                 return .{Ok=LoxObject.{Number=ln + rn}};
                             }
                             case #default ---
                         }
                     }
-                    case ls: .String {
+                    case .String as ls {
                         switch right {
-                            case rs: .String {
+                            case .String as rs {
                                 return .{Ok=LoxObject.{String=tprintf("{}{}", ls, rs)}};
                             }
                             case #default ---
@@ -339,13 +351,13 @@ Interpreter :: struct {
         callee := interpreter->evaluate(*expr.callee)->forward_err();
 
         arguments := list.make(LoxObject);
-        for argument_expr: expr.arguments->as_iter() {
+        for argument_expr in expr.arguments->as_iter() {
             argument := interpreter->evaluate(*argument_expr)->forward_err();
             arguments->push_end(argument);
         }
 
         switch callee {
-            case f: .Callable {
+            case .Callable as f {
                 if cast(u8) arguments->count() != f->arity() {
                     // NOTE: u8 int should be casted, otherwise it is treated as char!
                     return .{Err=RuntimeError.{token=expr.paren, message=tprintf("Expected {} arguments but got {}.", cast(i32) f->arity(), arguments->count())}};
@@ -364,7 +376,7 @@ Interpreter :: struct {
             case .Null {
                 return "nil";
             }
-            case v: .Number {
+            case .Number as v {
                 s := tprintf("{}", v);
                 // trim suffix .0000
                 if string.ends_with(s, ".0000") {
@@ -372,26 +384,26 @@ Interpreter :: struct {
                 }
                 return s;
             }
-            case b: .Bool {
+            case .Bool as b {
                 return tprintf("{}", b);
             }
-            case s: .String {
+            case .String as s {
                 return s;
             }
-            case f: .Callable {
+            case .Callable as f {
                 switch f {
                     case .BuiltIn {
                         return "<native fn>";
                     }
-                    case ff: .Function {
+                    case .Function as ff {
                         return tprintf("<fn {}>", ff.declaration.name.lexeme);
                     }
-                    case c: .Class {
+                    case .Class as c {
                         return c.name;
                     }
                 }
             }
-            case i: .Instance {
+            case .Instance as i {
                 return tprintf("{} instance", i.klass.name);
             }
         }
@@ -402,7 +414,7 @@ Interpreter :: struct {
             case .Null {
                 return false;
             }
-            case b: .Bool {
+            case .Bool as b {
                 return b;
             }
             case #default {

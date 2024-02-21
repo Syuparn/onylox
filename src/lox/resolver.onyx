@@ -151,7 +151,7 @@ Resolver :: struct {
     visit_call_expr :: (r: &Resolver, expr: CallExpr) -> Result(LoxObject, RuntimeError) {
         r->resolve(*expr.callee)->forward_err();
 
-        for argument: expr.arguments->as_iter() {
+        for argument in expr.arguments->as_iter() {
             r->resolve(*argument)->forward_err();
         }
         return .{Ok=.{}};
@@ -159,6 +159,10 @@ Resolver :: struct {
 
     visit_group_expr :: (r: &Resolver, expr: GroupExpr) -> Result(LoxObject, RuntimeError) {
         return r->resolve(*expr.expression);
+    }
+
+    visit_get_expr :: (r: &Resolver, expr: GetExpr) -> Result(LoxObject, RuntimeError) {
+        return r->resolve(*expr.object);
     }
 
     visit_literal_expr :: (r: &Resolver, expr: LiteralExpr) -> Result(LoxObject, RuntimeError) {
@@ -179,7 +183,7 @@ Resolver :: struct {
     resolve :: #match {
         (r: &Resolver, statements: list.List(Stmt)) -> Result(void, RuntimeError) {
             // NOTE: List#as_iter and List#count cannot be called from List($T) due to type mismatch
-            for i: 0..list_count(Stmt, statements) {
+            for i in 0..list_count(Stmt, statements) {
                 stmts := statements;
                 statement := *((&stmts)->at(i));
 
@@ -194,7 +198,7 @@ Resolver :: struct {
         },
         (r: &Resolver, statements: list.List(&Stmt)) -> Result(void, RuntimeError) {
             // NOTE: List#as_iter and List#count cannot be called from List($T) due to type mismatch
-            for i: 0..list_count(&Stmt, statements) {
+            for i in 0..list_count(&Stmt, statements) {
                 stmts := statements;
                 statement := *((&stmts)->at(i));
 
@@ -221,7 +225,7 @@ Resolver :: struct {
         defer r.current_function = enclosing_function;
 
         r->_begin_scope();
-        for param: stmt.params->as_iter() {
+        for param in stmt.params->as_iter() {
             r->_declare(param);
             r->_define(param);
         }

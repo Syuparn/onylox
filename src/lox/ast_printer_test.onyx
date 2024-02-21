@@ -53,6 +53,19 @@ test_ast_printer :: () => {
         },
         .{
             expr=Expr.{
+                Get=GetExpr.{
+                    object=&Expr.{
+                        Variable=VariableExpr.{
+                            name=Token.{type=TokenType.IDENTIFIER, lexeme="foo", line=1},
+                        },
+                    },
+                    name=Token.{type=TokenType.IDENTIFIER, lexeme="prop", literal=TokenLiteral.{Null=.{}}, line=1},
+                },
+            },
+            expected="(get (var foo) prop)",
+        },
+        .{
+            expr=Expr.{
                 Unary=UnaryExpr.{
                     operator=Token.{type=TokenType.MINUS, lexeme="-", literal=TokenLiteral.{Null=.{}}, line=1},
                     right=&Expr.{Literal=LiteralExpr.{value=TokenLiteral.{Number=123}}},
@@ -160,7 +173,7 @@ test_ast_printer :: () => {
         },
     ];
 
-    for tt: tests {
+    for tt in tests {
         printer := ASTPrinter.{};
 
         result := printer->print(tt.expr);

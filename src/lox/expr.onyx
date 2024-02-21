@@ -15,60 +15,67 @@ Expr :: union {
     Variable: VariableExpr;
     Assign: AssignExpr;
     Call: CallExpr;
+    Get: GetExpr;
 
     accept :: (expr: Expr, visitor: $T) -> Result(LoxObject, RuntimeError) where Visitor(T) {
         switch expr {
-            case e: .Literal {
+            case .Literal as e {
                 return visitor->visit_literal_expr(e);
             }
-            case e: .Logical {
+            case .Logical as e {
                 return visitor->visit_logical_expr(e);
             }
-            case e: .Binary {
+            case .Binary as e {
                 return visitor->visit_binary_expr(e);
             }
-            case e: .Unary {
+            case .Unary as e {
                 return visitor->visit_unary_expr(e);
             }
-            case e: .Group {
+            case .Group as e {
                 return visitor->visit_group_expr(e);
             }
-            case e: .Variable {
+            case .Variable as e {
                 return visitor->visit_variable_expr(e);
             }
-            case e: .Assign {
+            case .Assign as e {
                 return visitor->visit_assign_expr(e);
             }
-            case e: .Call {
+            case .Call as e {
                 return visitor->visit_call_expr(e);
+            }
+            case .Get as e {
+                return visitor->visit_get_expr(e);
             }
         }
     }
 
     hash :: (expr: Expr) -> u32 {
         switch expr {
-            case e: .Literal {
+            case .Literal as e {
                 return e._hash;
             }
-            case e: .Logical {
+            case .Logical as e {
                 return e._hash;
             }
-            case e: .Binary {
+            case .Binary as e {
                 return e._hash;
             }
-            case e: .Unary {
+            case .Unary as e {
                 return e._hash;
             }
-            case e: .Group {
+            case .Group as e {
                 return e._hash;
             }
-            case e: .Variable {
+            case .Variable as e {
                 return e._hash;
             }
-            case e: .Assign {
+            case .Assign as e {
                 return e._hash;
             }
-            case e: .Call {
+            case .Call as e {
+                return e._hash;
+            }
+            case .Get as e {
                 return e._hash;
             }
         }
@@ -129,7 +136,15 @@ CallExpr :: struct {
     _hash: u32 = new_hash();
 }
 
-Visitor :: interface (t: $T) {
+GetExpr :: struct {
+    object: &Expr;
+    name: Token;
+    _hash: u32 = new_hash();
+}
+
+Visitor :: interface (T: type_expr) {
+    t as T;
+
     { t->visit_literal_expr(LiteralExpr.{}) } -> Result(LoxObject, RuntimeError);
     { t->visit_logical_expr(LogicalExpr.{}) } -> Result(LoxObject, RuntimeError);
     { t->visit_binary_expr(BinaryExpr.{}) } -> Result(LoxObject, RuntimeError);
@@ -138,4 +153,5 @@ Visitor :: interface (t: $T) {
     { t->visit_variable_expr(VariableExpr.{}) } -> Result(LoxObject, RuntimeError);
     { t->visit_assign_expr(AssignExpr.{}) } -> Result(LoxObject, RuntimeError);
     { t->visit_call_expr(CallExpr.{}) } -> Result(LoxObject, RuntimeError);
+    { t->visit_get_expr(GetExpr.{}) } -> Result(LoxObject, RuntimeError);
 }
