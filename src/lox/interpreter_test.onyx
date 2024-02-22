@@ -535,6 +535,15 @@ test_interpreter_evaluate_error :: () => {
             expected=RuntimeError.{token=Token.{type=TokenType.IDENTIFIER, lexeme="foo"}, message="Only instances have properties."},
         },
         .{
+            title="set expr with non-instance",
+            expr=Expr.{Set=SetExpr.{
+                object=&Expr.{Literal=LiteralExpr.{value=TokenLiteral.{Number=123}}},
+                name=Token.{type=TokenType.IDENTIFIER, lexeme="foo"},
+                value=&Expr.{Literal=LiteralExpr.{value=TokenLiteral.{Number=456}}},
+            }},
+            expected=RuntimeError.{token=Token.{type=TokenType.IDENTIFIER, lexeme="foo"}, message="Only instances have fields."},
+        },
+        .{
             title="variable is not defined",
             expr=Expr.{Assign=AssignExpr.{
                 name=Token.{type=TokenType.IDENTIFIER, lexeme="foo"},
@@ -728,7 +737,7 @@ test_interpreter_stringify :: () {
         },
         .{
             title="instance",
-            obj=LoxObject.{Instance=LoxInstance.{klass=LoxClass.{name="Foo"}}},
+            obj=LoxObject.{Instance=&LoxInstance.{klass=LoxClass.{name="Foo"}}},
             expected="Foo instance",
         },
     ];

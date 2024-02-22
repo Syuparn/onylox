@@ -229,6 +229,29 @@ Interpreter :: struct {
         }
     }
 
+    visit_set_expr :: (interpreter: &Interpreter, expr: SetExpr) -> Result(LoxObject, RuntimeError) {
+        obj := interpreter->evaluate(*expr.object)->forward_err();
+
+        switch obj {
+            case .Instance as i --- // do nothing
+            case #default {
+                return .{Err=RuntimeError.{token=expr.name, message="Only instances have fields."}};
+            }
+        }
+
+        value := interpreter->evaluate(*expr.value)->forward_err();
+        // NOTE: obj.Instance cannot be assigned to another variable because assignment copies the value
+        // (instance should be updated distructively)
+        switch obj {
+            case .Instance as i {
+                i->set(expr.name, value);
+            }
+            case #default ---
+        }
+
+        return .{Ok=value};
+    }
+
     visit_binary_expr :: (interpreter: &Interpreter, expr: BinaryExpr) -> Result(LoxObject, RuntimeError) {
         // NOTE: left must be evaluated first for side-effect order
         left := interpreter->evaluate(*expr.left)->forward_err();

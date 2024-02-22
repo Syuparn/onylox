@@ -43,6 +43,14 @@ ASTPrinter :: struct {
         return .{Ok=LoxObject.{String=tprintf("(get {} {})", value, expr.name.lexeme)}};
     }
 
+    visit_set_expr :: (p: ASTPrinter, expr: SetExpr) -> Result(LoxObject, RuntimeError) {
+        obj := (*expr.object)->accept(p)->ok()?;
+        obj_val := obj.String->unwrap();
+        value := (*expr.value)->accept(p)->ok()?;
+        value_val := value.String->unwrap();
+        return .{Ok=LoxObject.{String=tprintf("(set {} {} {})", obj_val, expr.name.lexeme, value_val)}};
+    }
+
     _visit_literal_expr :: (p: ASTPrinter, expr: LiteralExpr) -> str {
         switch expr.value {
             case .Null {

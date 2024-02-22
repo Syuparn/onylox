@@ -7,7 +7,10 @@ LoxClass :: struct {
     name: str;
 
     call :: (c: LoxClass) -> Result(LoxObject, RuntimeError) {
-        return .{Ok=LoxObject.{Instance=LoxInstance.{klass=c}}};
+        instance := LoxInstance.{klass=c};
+        // TODO: free it
+        instance_ptr := context.allocator->move(instance);
+        return .{Ok=LoxObject.{Instance=instance_ptr}};
     }
 
     arity :: (c: LoxClass) -> u8 {

@@ -165,6 +165,12 @@ Resolver :: struct {
         return r->resolve(*expr.object);
     }
 
+    visit_set_expr :: (r: &Resolver, expr: SetExpr) -> Result(LoxObject, RuntimeError) {
+        r->resolve(*expr.object)->forward_err();
+        r->resolve(*expr.value)->forward_err();
+        return .{Ok=.{}};
+    }
+
     visit_literal_expr :: (r: &Resolver, expr: LiteralExpr) -> Result(LoxObject, RuntimeError) {
         return .{Ok=.{}};
     }

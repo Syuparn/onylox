@@ -13,7 +13,8 @@ LoxObject :: union {
     Bool: bool;
     Null: void;
     Callable: LoxCallable;
-    Instance: LoxInstance;
+    // NOTE: LoxInstance must be a pointer to update distructively
+    Instance: &LoxInstance;
 }
 
 #operator == (l1, l2: LoxObject) -> bool {

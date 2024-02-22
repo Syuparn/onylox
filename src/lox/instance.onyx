@@ -3,7 +3,7 @@
 #load "./runtime_error"
 #load "./token"
 
-use core { Pair, Result, tprintf }
+use core { Pair, printf, Result, tprintf }
 use core.conv
 use core.list
 
@@ -12,7 +12,7 @@ LoxInstance :: struct {
     fields: list.List(Pair(str, &LoxObject)) = list.make(Pair(str, &LoxObject));
     klass: LoxClass;
 
-    get :: (i: LoxInstance, name: Token) -> Result(LoxObject, RuntimeError) {
+    get :: (i: &LoxInstance, name: Token) -> Result(LoxObject, RuntimeError) {
         for field in i.fields->as_iter() {
             if field.first == name.lexeme {
                 return .{Ok=*field.second};
@@ -20,6 +20,13 @@ LoxInstance :: struct {
         }
 
         return .{Err=RuntimeError.{token=name, message=tprintf("Undefined property {}.", name.lexeme)}};
+    }
+
+    set :: (i: &LoxInstance, name: Token, value: LoxObject) {
+        // TODO: free it
+        value_ptr := context.allocator->move(value);
+        pair := Pair(str, &LoxObject).{first=name.lexeme, second=value_ptr};
+        i.fields->push_begin(pair);
     }
 }
 

@@ -280,6 +280,11 @@ Parser :: struct {
                     value_ptr := p->_alloc_expr(value); // NOTE: move does not work with reassigning...
                     return Expr.{Assign=AssignExpr.{name=name, value=value_ptr}};
                 }
+                case .Get as e {
+                    // HACK: alloc expr, otherwise it is deleted after return
+                    value_ptr := p->_alloc_expr(value); // NOTE: move does not work with reassigning...
+                    return Expr.{Set=SetExpr.{name=e.name, object=e.object, value=value_ptr}};
+                }
                 case #default {
                     // just log an error (not panic)
                     p->_error(equals, "Invalid assignment target.");

@@ -1,0 +1,9 @@
+class Foo {}
+
+var foo = Foo();
+
+foo.bar = 123;
+print foo.bar;
+
+foo.bar = 456;
+print foo.bar;

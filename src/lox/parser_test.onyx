@@ -304,6 +304,25 @@ test_parser_parse_expr :: () => {
                 name=Token.{type=TokenType.IDENTIFIER, lexeme="bar"},
             }},
         },
+        .{
+            title="parse set expr",
+            tokens=to_list(Token.[
+                Token.{type=TokenType.IDENTIFIER, lexeme="foo"},
+                Token.{type=TokenType.DOT, lexeme="."},
+                Token.{type=TokenType.IDENTIFIER, lexeme="bar"},
+                Token.{type=TokenType.EQUAL, lexeme="="},
+                Token.{type=TokenType.NUMBER, lexeme="2", literal=TokenLiteral.{Number=2}},
+                Token.{type=TokenType.SEMICOLON, lexeme=";"},
+                Token.{type=TokenType.EOF, lexeme=""},
+            ]),
+            expected=Expr.{Set=SetExpr.{
+                object=&Expr.{Variable=VariableExpr.{
+                    name=Token.{type=TokenType.IDENTIFIER, lexeme="foo"},
+                }},
+                name=Token.{type=TokenType.IDENTIFIER, lexeme="bar"},
+                value=&Expr.{Literal=LiteralExpr.{value=TokenLiteral.{Number=2}}},
+            }},
+        },
     ];
 
     for tt in tests {
