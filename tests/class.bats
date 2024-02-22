@@ -24,3 +24,13 @@ setup() {
   run wasmer run --mapdir tests:tests onylox.wasm -- tests/testdata/src/instance_fields.lox
   assert_output "123"$'\n'"456"
 }
+
+@test "instance methods" {
+  run wasmer run --mapdir tests:tests onylox.wasm -- tests/testdata/src/instance_methods.lox
+  assert_output "Crunch crunch crunch!"
+}
+
+@test "field shadows method" {
+  run wasmer run --mapdir tests:tests onylox.wasm -- tests/testdata/src/instance_shadowing.lox
+  assert_output "Hi!"$'\n'"Bye!"
+}

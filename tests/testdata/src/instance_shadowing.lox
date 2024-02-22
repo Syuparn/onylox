@@ -1,0 +1,16 @@
+class Person {
+  sayHi() {
+    print "Hi!";
+  }
+}
+
+fun goodbye() {
+  print "Bye!";
+}
+
+var person = Person();
+person.sayHi();
+
+// fields shadows instance methods
+person.sayHi = goodbye;
+person.sayHi();

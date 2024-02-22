@@ -7,7 +7,7 @@
 #load "./util"
 
 use core
-use core { printf, println, Result, tprintf }
+use core { Pair, printf, println, Result, tprintf }
 use core.list
 use core.map
 use core.string
@@ -139,7 +139,18 @@ Interpreter :: struct {
 
     visit_class_stmt :: (interpreter: &Interpreter, stmt: ClassStmt) -> Result(void, RuntimeError) {
         interpreter.environment->define(stmt.name.lexeme, LoxObject.{Null=.{}});
-        klass := LoxObject.{Callable=LoxCallable.{Class=LoxClass.{name=stmt.name.lexeme}}};
+
+        methods := list.make(Pair(str, &LoxFunction));
+        // TODO: free unused environment
+        env_ptr := context.allocator->move(interpreter.environment);
+
+        for method in stmt.methods->as_iter() {
+            function := LoxFunction.{declaration=*method, closure=env_ptr};
+            func_ptr := context.allocator->move(function);
+            methods->push_end(Pair(str, &LoxFunction).{method.name.lexeme, func_ptr});
+        }
+
+        klass := LoxObject.{Callable=LoxCallable.{Class=LoxClass.{name=stmt.name.lexeme, methods=methods}}};
         interpreter.environment->assign(stmt.name, klass);
         return .{Ok=.{}};
     }

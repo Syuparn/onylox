@@ -32,6 +32,12 @@ Resolver :: struct {
     visit_class_stmt :: (r: &Resolver, stmt: ClassStmt) -> Result(void, RuntimeError) {
         r->_declare(stmt.name);
         r->_define(stmt.name);
+
+        for method in stmt.methods->as_iter() {
+            declaration := FunctionType.METHOD;
+            r->_resolve_function(*method, declaration);
+        }
+
         return .{Ok=.{}};
     }
 
@@ -298,4 +304,5 @@ Resolver :: struct {
 FunctionType :: enum {
     NONE;
     FUNCTION;
+    METHOD;
 }

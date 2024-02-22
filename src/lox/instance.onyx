@@ -13,10 +13,17 @@ LoxInstance :: struct {
     klass: LoxClass;
 
     get :: (i: &LoxInstance, name: Token) -> Result(LoxObject, RuntimeError) {
+        // search field
         for field in i.fields->as_iter() {
             if field.first == name.lexeme {
                 return .{Ok=*field.second};
             }
+        }
+
+        // search methods
+        method := i.klass->find_method(name.lexeme);
+        if !is_empty(method) {
+            return .{Ok=LoxObject.{Callable=LoxCallable.{Function=method?}}};
         }
 
         return .{Err=RuntimeError.{token=name, message=tprintf("Undefined property {}.", name.lexeme)}};
