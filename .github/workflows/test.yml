@@ -1,0 +1,36 @@
+name: Test
+
+on: [push]
+
+jobs:
+  build:
+    name: Build
+    runs-on: ubuntu-20.04
+    steps:
+    - uses: actions/checkout@v3
+      with:
+        submodules: recursive
+    - name: Setup bats
+      run: sudo apt-get update && sudo apt-get install -y bats
+    - name: Setup Wasmer
+      uses: wasmerio/setup-wasmer@v3.1
+      with:
+        version: 'v4.2.3'
+    - name: prepare Onyx
+      run: |
+        wasmer --version
+        git clone https://github.com/onyx-lang/onyx --depth 1
+        cd onyx
+        git fetch origin v0.1.9-beta
+        git checkout v0.1.9-beta
+        source settings.sh
+        ./build.sh compile package
+        echo $(pwd)"/dist/bin" >> $GITHUB_PATH
+        echo $(pwd)"/dist/bin"
+        ls $(pwd)"/dist/bin"
+        echo "$PATH"
+        cd ..
+    - name: test
+      run: |
+        export ONYX_PATH=onyx/dist
+        make test
