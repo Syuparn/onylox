@@ -446,6 +446,13 @@ Parser :: struct {
             return Expr.{Literal=LiteralExpr.{value=TokenLiteral.{Null=.{}}}};
         }
 
+        if p->_match(TokenType.SUPER) {
+            keyword := p->_previous();
+            p->_consume(TokenType.DOT, "Expect '.' after 'super'.")?;
+            method := p->_consume(TokenType.IDENTIFIER, "Expect superclass method name.")?;
+            return Expr.{Super=SuperExpr.{keyword=keyword, method=method}};
+        }
+
         if p->_match(TokenType.NUMBER, TokenType.STRING) {
             return Expr.{Literal=LiteralExpr.{value=p->_previous().literal}};
         }

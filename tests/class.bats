@@ -89,3 +89,28 @@ setup() {
   run wasmer run --mapdir tests:tests onylox.wasm -- tests/testdata/src/class_inheritance.lox
   assert_output "meow"$'\n'"happyhappyhappy"
 }
+
+@test "super" {
+  run wasmer run --mapdir tests:tests onylox.wasm -- tests/testdata/src/super.lox
+  assert_output "Fry until golden brown."$'\n'"Pipe full of custard and coat with chocolate."
+}
+
+@test "super is defined when the class is defined" {
+  run wasmer run --mapdir tests:tests onylox.wasm -- tests/testdata/src/super_find.lox
+  assert_output "A method"
+}
+
+@test "undefined method is referred via super" {
+  run wasmer run --mapdir tests:tests onylox.wasm -- tests/testdata/src/error_super_undefined_method.lox
+  assert_output "Undefined property bar."$'\n'"[line 5]"
+}
+
+@test "super in toplevel" {
+  run wasmer run --mapdir tests:tests onylox.wasm -- tests/testdata/src/error_super_toplevel.lox
+  assert_output "[line 1] Error at 'super': Can't use 'super' outside of a class."
+}
+
+@test "super in a class without superclass" {
+  run wasmer run --mapdir tests:tests onylox.wasm -- tests/testdata/src/error_super_without_superclass.lox
+  assert_output "[line 3] Error at 'super': Can't use 'super' in a class with no superclass."
+}

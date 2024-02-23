@@ -18,6 +18,7 @@ Expr :: union {
     Get: GetExpr;
     Set: SetExpr;
     This: ThisExpr;
+    Super: SuperExpr;
 
     accept :: (expr: Expr, visitor: $T) -> Result(LoxObject, RuntimeError) where Visitor(T) {
         switch expr {
@@ -53,6 +54,9 @@ Expr :: union {
             }
             case .This as e {
                 return visitor->visit_this_expr(e);
+            }
+            case .Super as e {
+                return visitor->visit_super_expr(e);
             }
         }
     }
@@ -90,6 +94,9 @@ Expr :: union {
                 return e._hash;
             }
             case .This as e {
+                return e._hash;
+            }
+            case .Super as e {
                 return e._hash;
             }
         }
@@ -168,6 +175,12 @@ ThisExpr :: struct {
     _hash: u32 = new_hash();
 }
 
+SuperExpr :: struct {
+    keyword: Token;
+    method: Token;
+    _hash: u32 = new_hash();
+}
+
 Visitor :: interface (T: type_expr) {
     t as T;
 
@@ -182,4 +195,5 @@ Visitor :: interface (T: type_expr) {
     { t->visit_get_expr(GetExpr.{}) } -> Result(LoxObject, RuntimeError);
     { t->visit_set_expr(SetExpr.{}) } -> Result(LoxObject, RuntimeError);
     { t->visit_this_expr(ThisExpr.{}) } -> Result(LoxObject, RuntimeError);
+    { t->visit_super_expr(SuperExpr.{}) } -> Result(LoxObject, RuntimeError);
 }

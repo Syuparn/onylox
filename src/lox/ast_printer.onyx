@@ -55,6 +55,10 @@ ASTPrinter :: struct {
         return .{Ok=LoxObject.{String="this"}};
     }
 
+    visit_super_expr :: (p: ASTPrinter, expr: SuperExpr) -> Result(LoxObject, RuntimeError) {
+        return .{Ok=LoxObject.{String=tprintf("(super {})", expr.method.lexeme)}};
+    }
+
     _visit_literal_expr :: (p: ASTPrinter, expr: LiteralExpr) -> str {
         switch expr.value {
             case .Null {

@@ -185,6 +185,23 @@ test_ast_printer :: () => {
             },
             expected="(+ <null Expr (should be Onylox bug)> <null Expr (should be Onylox bug)>)",
         },
+        .{
+            expr=Expr.{
+                This=ThisExpr.{
+                    keyword=Token.{type=TokenType.THIS, lexeme="this", line=1},
+                },
+            },
+            expected="this",
+        },
+        .{
+            expr=Expr.{
+                Super=SuperExpr.{
+                    keyword=Token.{type=TokenType.SUPER, lexeme="super", line=1},
+                    method=Token.{type=TokenType.IDENTIFIER, lexeme="foo", line=1},
+                },
+            },
+            expected="(super foo)",
+        },
     ];
 
     for tt in tests {

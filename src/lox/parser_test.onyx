@@ -334,6 +334,20 @@ test_parser_parse_expr :: () => {
                 keyword=Token.{type=TokenType.THIS, lexeme="this"},
             }},
         },
+        .{
+            title="parse super expr",
+            tokens=to_list(Token.[
+                Token.{type=TokenType.SUPER, lexeme="super"},
+                Token.{type=TokenType.DOT, lexeme="."},
+                Token.{type=TokenType.IDENTIFIER, lexeme="foo"},
+                Token.{type=TokenType.SEMICOLON, lexeme=";"},
+                Token.{type=TokenType.EOF, lexeme=""},
+            ]),
+            expected=Expr.{Super=SuperExpr.{
+                keyword=Token.{type=TokenType.SUPER, lexeme="super"},
+                method=Token.{type=TokenType.IDENTIFIER, lexeme="foo"},
+            }},
+        },
     ];
 
     for tt in tests {
@@ -388,6 +402,24 @@ test_parser_parse_error :: () => {
                 Token.{type=TokenType.IDENTIFIER, lexeme="b"},
                 Token.{type=TokenType.EQUAL, lexeme="="},
                 Token.{type=TokenType.NUMBER, lexeme="10", literal=TokenLiteral.{Number=10}},
+                Token.{type=TokenType.SEMICOLON, lexeme=";"},
+                Token.{type=TokenType.EOF, lexeme=""},
+            ]),
+        },
+        .{
+            title="super without dot",
+            tokens=to_list(Token.[
+                Token.{type=TokenType.SUPER, lexeme="super"},
+                Token.{type=TokenType.IDENTIFIER, lexeme="b"},
+                Token.{type=TokenType.SEMICOLON, lexeme=";"},
+                Token.{type=TokenType.EOF, lexeme=""},
+            ]),
+        },
+        .{
+            title="super without method name",
+            tokens=to_list(Token.[
+                Token.{type=TokenType.SUPER, lexeme="super"},
+                Token.{type=TokenType.DOT, lexeme="."},
                 Token.{type=TokenType.SEMICOLON, lexeme=";"},
                 Token.{type=TokenType.EOF, lexeme=""},
             ]),

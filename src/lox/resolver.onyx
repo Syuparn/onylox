@@ -38,6 +38,8 @@ Resolver :: struct {
         r->_define(stmt.name);
 
         if !is_empty(stmt.superclass) {
+            r.current_class = ClassType.SUBCLASS;
+
             if stmt.name.lexeme == stmt.superclass?.name.lexeme {
                 return .{Err=RuntimeError.{token=stmt.superclass?.name, message="A class can't inherit from itself."}};
             }
@@ -46,6 +48,11 @@ Resolver :: struct {
             if result->is_err() {
                 return .{Err=result->err()?};
             }
+
+            // create implicit closure to define super
+            r->_begin_scope();
+            scope := r.scopes.last.data;
+            scope->put("super", true);
         }
 
         // create implicit closure to define this
@@ -64,6 +71,10 @@ Resolver :: struct {
             if result->is_err() {
                 return .{Err=result->err()?};
             }
+        }
+
+        if !is_empty(stmt.superclass) {
+            r->_end_scope();
         }
 
         r->_end_scope();
@@ -221,6 +232,17 @@ Resolver :: struct {
         return .{Ok=.{}};
     }
 
+    visit_super_expr :: (r: &Resolver, expr: SuperExpr) -> Result(LoxObject, RuntimeError) {
+        if r.current_class == ClassType.NONE {
+            return .{Err=RuntimeError.{token=expr.keyword, message="Can't use 'super' outside of a class."}};
+        } elseif r.current_class == ClassType.CLASS {
+            return .{Err=RuntimeError.{token=expr.keyword, message="Can't use 'super' in a class with no superclass."}};
+        }
+
+        r->_resolve_local(Expr.{Super=expr}, expr.keyword);
+        return .{Ok=.{}};
+    }
+
     visit_literal_expr :: (r: &Resolver, expr: LiteralExpr) -> Result(LoxObject, RuntimeError) {
         return .{Ok=.{}};
     }
@@ -356,4 +378,5 @@ FunctionType :: enum {
 ClassType :: enum {
     NONE;
     CLASS;
+    SUBCLASS;
 }

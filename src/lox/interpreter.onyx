@@ -162,10 +162,20 @@ Interpreter :: struct {
 
         interpreter.environment->define(stmt.name.lexeme, LoxObject.{Null=.{}});
 
-        methods := list.make(Pair(str, &LoxFunction));
+
+
+        if !is_empty(stmt.superclass) {
+            // create closure to bind super
+            // TODO: free unused environment
+            env_ptr := context.allocator->move(interpreter.environment);
+            interpreter.environment = Environment.{enclosing=env_ptr};
+            interpreter.environment->define("super", LoxObject.{Callable=LoxCallable.{Class=*superclass}});
+        }
+
         // TODO: free unused environment
         env_ptr := context.allocator->move(interpreter.environment);
 
+        methods := list.make(Pair(str, &LoxFunction));
         for method in stmt.methods->as_iter() {
             function := LoxFunction.{declaration=*method, closure=env_ptr, is_initializer=method.name.lexeme == "init"};
             func_ptr := context.allocator->move(function);
@@ -173,6 +183,11 @@ Interpreter :: struct {
         }
 
         klass := LoxObject.{Callable=LoxCallable.{Class=LoxClass.{name=stmt.name.lexeme, superclass=superclass, methods=methods}}};
+
+        if superclass != null {
+            interpreter.environment = *interpreter.environment.enclosing;
+        }
+
         interpreter.environment->assign(stmt.name, klass);
         return .{Ok=.{}};
     }
@@ -287,6 +302,22 @@ Interpreter :: struct {
 
     visit_this_expr :: (interpreter: &Interpreter, expr: ThisExpr) -> Result(LoxObject, RuntimeError) {
         return interpreter->_look_up_variable(expr.keyword, Expr.{This=expr});
+    }
+
+    visit_super_expr :: (interpreter: &Interpreter, expr: SuperExpr) -> Result(LoxObject, RuntimeError) {
+        distance := interpreter.locals->get(Expr.{Super=expr})?;
+        superclass_obj := interpreter.environment->get_at(distance, "super")->forward_err();
+        superclass := superclass_obj.Callable?.Class?;
+
+        object_obj := interpreter.environment->get_at(distance - 1, "this")->forward_err();
+        object := object_obj.Instance?;
+
+        method := superclass->find_method(expr.method.lexeme);
+        if is_empty(method) {
+            return .{Err=RuntimeError.{token=expr.method, message=tprintf("Undefined property {}.", expr.method.lexeme)}};
+        }
+
+        return .{Ok=LoxObject.{Callable=LoxCallable.{Function=method?->bind(object)}}};
     }
 
     visit_binary_expr :: (interpreter: &Interpreter, expr: BinaryExpr) -> Result(LoxObject, RuntimeError) {
