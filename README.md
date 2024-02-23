@@ -1,4 +1,6 @@
 # onylox
+[![Test](https://github.com/Syuparn/onylox/actions/workflows/test.yml/badge.svg)](https://github.com/Syuparn/onylox/actions/workflows/test.yml)
+
 [Lox language](https://github.com/munificent/craftinginterpreters) implemented in [Onyx](https://onyxlang.io/)
 
 # Run
