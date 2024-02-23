@@ -51,6 +51,10 @@ ASTPrinter :: struct {
         return .{Ok=LoxObject.{String=tprintf("(set {} {} {})", obj_val, expr.name.lexeme, value_val)}};
     }
 
+    visit_this_expr :: (p: ASTPrinter, expr: ThisExpr) -> Result(LoxObject, RuntimeError) {
+        return .{Ok=LoxObject.{String="this"}};
+    }
+
     _visit_literal_expr :: (p: ASTPrinter, expr: LiteralExpr) -> str {
         switch expr.value {
             case .Null {

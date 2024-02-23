@@ -16,6 +16,7 @@ Resolver :: struct {
     // NOTE: map must be pointers assigning map copies values!
     scopes: list.List(&Map(str, bool)) = list.make(&Map(str, bool));
     current_function: FunctionType = FunctionType.NONE;
+    current_class: ClassType = ClassType.NONE;
 
     visit_block_stmt :: (r: &Resolver, stmt: BlockStmt) -> Result(void, RuntimeError) {
         r->_begin_scope();
@@ -30,13 +31,24 @@ Resolver :: struct {
     }
 
     visit_class_stmt :: (r: &Resolver, stmt: ClassStmt) -> Result(void, RuntimeError) {
+        enclosing_class := r.current_class;
+        r.current_class = ClassType.CLASS;
+
         r->_declare(stmt.name);
         r->_define(stmt.name);
+
+        // create implicit closure to define this
+        r->_begin_scope();
+        scope := r.scopes.last.data;
+        scope->put("this", true);
 
         for method in stmt.methods->as_iter() {
             declaration := FunctionType.METHOD;
             r->_resolve_function(*method, declaration);
         }
+
+        r->_end_scope();
+        r.current_class = enclosing_class;
 
         return .{Ok=.{}};
     }
@@ -177,6 +189,15 @@ Resolver :: struct {
         return .{Ok=.{}};
     }
 
+    visit_this_expr :: (r: &Resolver, expr: ThisExpr) -> Result(LoxObject, RuntimeError) {
+        if r.current_class == ClassType.NONE {
+            return .{Err=RuntimeError.{token=expr.keyword, message="Can't use 'this' outside of a class."}};
+        }
+
+        r->_resolve_local(Expr.{This=expr}, expr.keyword);
+        return .{Ok=.{}};
+    }
+
     visit_literal_expr :: (r: &Resolver, expr: LiteralExpr) -> Result(LoxObject, RuntimeError) {
         return .{Ok=.{}};
     }
@@ -305,4 +326,10 @@ FunctionType :: enum {
     NONE;
     FUNCTION;
     METHOD;
+}
+
+#local
+ClassType :: enum {
+    NONE;
+    CLASS;
 }

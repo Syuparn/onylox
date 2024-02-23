@@ -23,7 +23,7 @@ LoxInstance :: struct {
         // search methods
         method := i.klass->find_method(name.lexeme);
         if !is_empty(method) {
-            return .{Ok=LoxObject.{Callable=LoxCallable.{Function=method?}}};
+            return .{Ok=LoxObject.{Callable=LoxCallable.{Function=method?->bind(i)}}};
         }
 
         return .{Err=RuntimeError.{token=name, message=tprintf("Undefined property {}.", name.lexeme)}};

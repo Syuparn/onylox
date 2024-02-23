@@ -443,6 +443,10 @@ Parser :: struct {
             return Expr.{Literal=LiteralExpr.{value=p->_previous().literal}};
         }
 
+        if p->_match(TokenType.THIS) {
+            return Expr.{This=ThisExpr.{keyword=p->_previous()}};
+        }
+
         if p->_match(TokenType.IDENTIFIER) {
             return Expr.{Variable=VariableExpr.{name=p->_previous()}};
         }

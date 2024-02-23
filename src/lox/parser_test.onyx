@@ -323,6 +323,17 @@ test_parser_parse_expr :: () => {
                 value=&Expr.{Literal=LiteralExpr.{value=TokenLiteral.{Number=2}}},
             }},
         },
+        .{
+            title="parse this expr",
+            tokens=to_list(Token.[
+                Token.{type=TokenType.THIS, lexeme="this"},
+                Token.{type=TokenType.SEMICOLON, lexeme=";"},
+                Token.{type=TokenType.EOF, lexeme=""},
+            ]),
+            expected=Expr.{This=ThisExpr.{
+                keyword=Token.{type=TokenType.THIS, lexeme="this"},
+            }},
+        },
     ];
 
     for tt in tests {

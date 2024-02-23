@@ -40,4 +40,15 @@ LoxFunction :: struct {
     arity :: (f: LoxFunction) -> u8 {
         return cast(u8) f.declaration.params->count();
     }
+
+    // NOTE: it returns a new function because `this` is defined in the inner environment of the original one
+    // f: outer -> inner
+    // returned function: outer -> new_env(with this) -> inner
+    bind :: (f: LoxFunction, instance: &LoxInstance) -> LoxFunction {
+        environment := Environment.{enclosing=f.closure};
+        environment->define("this", LoxObject.{Instance=instance});
+        // TODO: free it
+        env_ptr := context.allocator->move(environment);
+        return LoxFunction.{declaration=f.declaration, closure=env_ptr};
+    }
 }

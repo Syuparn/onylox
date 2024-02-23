@@ -263,6 +263,10 @@ Interpreter :: struct {
         return .{Ok=value};
     }
 
+    visit_this_expr :: (interpreter: &Interpreter, expr: ThisExpr) -> Result(LoxObject, RuntimeError) {
+        return interpreter->_look_up_variable(expr.keyword, Expr.{This=expr});
+    }
+
     visit_binary_expr :: (interpreter: &Interpreter, expr: BinaryExpr) -> Result(LoxObject, RuntimeError) {
         // NOTE: left must be evaluated first for side-effect order
         left := interpreter->evaluate(*expr.left)->forward_err();
@@ -369,11 +373,10 @@ Interpreter :: struct {
     }
 
     visit_variable_expr :: (interpreter: &Interpreter, expr: VariableExpr) -> Result(LoxObject, RuntimeError) {
-        return interpreter->_look_up_variable(expr.name, expr);
+        return interpreter->_look_up_variable(expr.name, Expr.{Variable=expr});
     }
 
-    _look_up_variable :: (interpreter: &Interpreter, name: Token, var: VariableExpr) -> Result(LoxObject, RuntimeError) {
-        expr := Expr.{Variable=var};
+    _look_up_variable :: (interpreter: &Interpreter, name: Token, expr: Expr) -> Result(LoxObject, RuntimeError) {
         distance := interpreter.locals->get(expr);
         if !is_empty(distance) {
             return interpreter.environment->get_at(distance?, name.lexeme);
