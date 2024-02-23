@@ -6,6 +6,8 @@ use core.list
 
 LoxClass :: struct {
     name: str;
+    // optional cannot be used here
+    superclass: &LoxClass;
     methods: list.List(Pair(str, &LoxFunction)) = list.make(Pair(str, &LoxFunction));
 
     call :: (c: LoxClass, interpreter: &Interpreter, arguments: list.List(LoxObject)) -> Result(LoxObject, RuntimeError) {
@@ -36,6 +38,11 @@ LoxClass :: struct {
                 return *method_pair.second;
             }
         }
+
+        if c.superclass != null {
+            return (*c.superclass)->find_method(name);
+        }
+
         return Optional.empty(LoxFunction);
     }
 }

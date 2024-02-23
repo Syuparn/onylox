@@ -58,6 +58,13 @@ Parser :: struct {
 
     _class_declaration :: (p: &Parser) -> ? Stmt {
         name := p->_consume(TokenType.IDENTIFIER, "Expect class name.")?;
+
+        superclass := Optional.empty(VariableExpr);
+        if p->_match(TokenType.LESS) {
+            p->_consume(TokenType.IDENTIFIER, "Expect superclass name.")?;
+            superclass = VariableExpr.{name=p->_previous()};
+        }
+
         p->_consume(TokenType.LEFT_BRACE, "Expect '{' before class body.")?;
 
         methods := list.make(&FunctionStmt);
@@ -69,7 +76,7 @@ Parser :: struct {
         }
 
         p->_consume(TokenType.RIGHT_BRACE, "Expect '}' after class body.");
-        return Stmt.{Class=ClassStmt.{name=name, methods=methods}};
+        return Stmt.{Class=ClassStmt.{name=name, superclass=superclass, methods=methods}};
     }
 
     _var_declaration :: (p: &Parser) -> ? Stmt {

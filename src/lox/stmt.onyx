@@ -73,6 +73,7 @@ BlockStmt :: struct {
 
 ClassStmt :: struct {
     name: Token;
+    superclass: ?VariableExpr;
     methods: list.List(&FunctionStmt);
 }
 

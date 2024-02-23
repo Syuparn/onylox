@@ -1,0 +1,2 @@
+var X = 1;
+class Foo < X {}

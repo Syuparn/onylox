@@ -138,6 +138,28 @@ Interpreter :: struct {
     }
 
     visit_class_stmt :: (interpreter: &Interpreter, stmt: ClassStmt) -> Result(void, RuntimeError) {
+        superclass: &LoxClass = null;
+        if !is_empty(stmt.superclass) {
+            v := interpreter->evaluate(Expr.{Variable=stmt.superclass?})->forward_err();
+            switch v {
+                case .Callable as c {
+                    switch c {
+                        case .Class as class {
+                            // TODO: free it
+                            class_ptr := context.allocator->move(class);
+                            superclass = class_ptr;
+                        }
+                        case #default {
+                            return .{Err=RuntimeError.{token=stmt.superclass?.name, message="Superclass must be a class."}};
+                        }
+                    }
+                }
+                case #default {
+                    return .{Err=RuntimeError.{token=stmt.superclass?.name, message="Superclass must be a class."}};
+                }
+            }
+        }
+
         interpreter.environment->define(stmt.name.lexeme, LoxObject.{Null=.{}});
 
         methods := list.make(Pair(str, &LoxFunction));
@@ -150,7 +172,7 @@ Interpreter :: struct {
             methods->push_end(Pair(str, &LoxFunction).{method.name.lexeme, func_ptr});
         }
 
-        klass := LoxObject.{Callable=LoxCallable.{Class=LoxClass.{name=stmt.name.lexeme, methods=methods}}};
+        klass := LoxObject.{Callable=LoxCallable.{Class=LoxClass.{name=stmt.name.lexeme, superclass=superclass, methods=methods}}};
         interpreter.environment->assign(stmt.name, klass);
         return .{Ok=.{}};
     }

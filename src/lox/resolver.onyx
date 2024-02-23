@@ -37,6 +37,17 @@ Resolver :: struct {
         r->_declare(stmt.name);
         r->_define(stmt.name);
 
+        if !is_empty(stmt.superclass) {
+            if stmt.name.lexeme == stmt.superclass?.name.lexeme {
+                return .{Err=RuntimeError.{token=stmt.superclass?.name, message="A class can't inherit from itself."}};
+            }
+
+            result := r->resolve(Expr.{Variable=stmt.superclass?});
+            if result->is_err() {
+                return .{Err=result->err()?};
+            }
+        }
+
         // create implicit closure to define this
         r->_begin_scope();
         scope := r.scopes.last.data;

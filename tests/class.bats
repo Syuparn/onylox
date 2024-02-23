@@ -74,3 +74,18 @@ setup() {
   run wasmer run --mapdir tests:tests onylox.wasm -- tests/testdata/src/class_init_explicit_return.lox
   assert_output "Foo instance"
 }
+
+@test "class inherits itself" {
+  run wasmer run --mapdir tests:tests onylox.wasm -- tests/testdata/src/error_inherit_itself.lox
+  assert_output "[line 1] Error at 'Oops': A class can't inherit from itself."
+}
+
+@test "class inherits non-class value" {
+  run wasmer run --mapdir tests:tests onylox.wasm -- tests/testdata/src/error_inherit_nonclass.lox
+  assert_output "Superclass must be a class."$'\n'"[line 2]"
+}
+
+@test "class inheritance" {
+  run wasmer run --mapdir tests:tests onylox.wasm -- tests/testdata/src/class_inheritance.lox
+  assert_output "meow"$'\n'"happyhappyhappy"
+}

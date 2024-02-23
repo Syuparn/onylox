@@ -469,6 +469,17 @@ test_parser_parse_error :: () => {
             ]),
         },
         .{
+            title="no superclass (class)",
+            tokens=to_list(Token.[
+                Token.{type=TokenType.CLASS, lexeme="class"},
+                Token.{type=TokenType.IDENTIFIER, lexeme="foo"},
+                Token.{type=TokenType.LESS, lexeme="<"},
+                Token.{type=TokenType.LEFT_BRACE, lexeme="{"},
+                Token.{type=TokenType.RIGHT_BRACE, lexeme="}"},
+                Token.{type=TokenType.EOF, lexeme=""},
+            ]),
+        },
+        .{
             title="no left brace (class)",
             tokens=to_list(Token.[
                 Token.{type=TokenType.CLASS, lexeme="class"},

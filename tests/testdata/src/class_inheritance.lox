@@ -1,0 +1,15 @@
+class Cat {
+  meow() {
+    print "meow";
+  }
+}
+
+class CatMeme < Cat {
+  sing() {
+    print "happyhappyhappy";
+  }
+}
+
+var cat = CatMeme();
+cat.meow();
+cat.sing();
