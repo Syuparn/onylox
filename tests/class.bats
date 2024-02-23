@@ -49,3 +49,28 @@ setup() {
   run wasmer run --mapdir tests:tests onylox.wasm -- tests/testdata/src/class_init.lox
   assert_output "true"$'\n'"I'm Jane."
 }
+
+@test "call init directly" {
+  run wasmer run --mapdir tests:tests onylox.wasm -- tests/testdata/src/instance_call_init.lox
+  assert_output "Person instance"$'\n'"true"
+}
+
+@test "class equivalence" {
+  run wasmer run --mapdir tests:tests onylox.wasm -- tests/testdata/src/class_equivalence.lox
+  assert_output "true"$'\n'"false"
+}
+
+@test "instance equivalence" {
+  run wasmer run --mapdir tests:tests onylox.wasm -- tests/testdata/src/instance_equivalence.lox
+  assert_output "true"$'\n'"false"
+}
+
+@test "init returns value" {
+  run wasmer run --mapdir tests:tests onylox.wasm -- tests/testdata/src/error_init_returns_value.lox
+  assert_output "[line 3] Error at 'return': Can't return a value from an initializer."
+}
+
+@test "explicit return in init" {
+  run wasmer run --mapdir tests:tests onylox.wasm -- tests/testdata/src/class_init_explicit_return.lox
+  assert_output "Foo instance"
+}

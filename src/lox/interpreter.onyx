@@ -145,7 +145,7 @@ Interpreter :: struct {
         env_ptr := context.allocator->move(interpreter.environment);
 
         for method in stmt.methods->as_iter() {
-            function := LoxFunction.{declaration=*method, closure=env_ptr};
+            function := LoxFunction.{declaration=*method, closure=env_ptr, is_initializer=method.name.lexeme == "init"};
             func_ptr := context.allocator->move(function);
             methods->push_end(Pair(str, &LoxFunction).{method.name.lexeme, func_ptr});
         }

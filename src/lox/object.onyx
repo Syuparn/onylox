@@ -59,6 +59,40 @@ LoxObject :: union {
                 }
             }
         }
+        case .Instance as i1 {
+            switch l2 {
+                case .Instance as i2 {
+                    return i1 == i2;
+                }
+                case #default {
+                    return false;
+                }
+            }
+        }
+        case .Callable as c1 {
+            switch c1 {
+                case .Class as cc1 {
+                    switch l2 {
+                        case .Callable as c2 {
+                            switch c2 {
+                                case .Class as cc2 {
+                                    return cc1.name == cc2.name;
+                                }
+                                case #default {
+                                    return false;
+                                }
+                            }
+                        }
+                        case #default {
+                            return false;
+                        }
+                    }
+                }
+                case #default {
+                    return false;
+                }
+            }
+        }
         case #default {
             return false;
         }

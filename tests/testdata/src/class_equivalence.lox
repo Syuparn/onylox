@@ -1,0 +1,5 @@
+class Person {}
+class Cat {}
+
+print Person == Person;
+print Person == Cat;

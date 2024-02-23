@@ -1,0 +1,11 @@
+// init returns this implicitly
+class Person {
+  init(name) {
+    this.name = name;
+  }
+}
+
+var person = Person("Jane");
+var person2 = person.init("Tom");
+print person2;
+print person2 == person; // true

@@ -2,11 +2,12 @@
 #load "./interpreter.onyx"
 #load "./stmt.onyx"
 
-use core {Result}
+use core { printf, Result }
 use core.list
 
 LoxFunction :: struct {
     declaration: FunctionStmt;
+    is_initializer: bool = false;
     // HACK: if Environment is used instead, somehow packages cannot be resolved...
     closure: &Environment;
 
@@ -28,12 +29,25 @@ LoxFunction :: struct {
 
             // HACK: if value exists, it is a returned value from function
             if !is_empty(err.value) {
+                // init returns this
+                if f.is_initializer {
+                    return f.closure->get_at(0, "this");
+                }
+
                 return .{Ok=err.value?};
             }
 
             return .{Err=err};
         }
 
+        // init method always returns `this` implicitly
+        // NOTE: this must be checked by the flag (not name "init"),
+        //       otherwise user-defined (non-method) function `init` is treated as an initializer unexpectedly
+        if f.is_initializer {
+            return f.closure->get_at(0, "this");
+        }
+
+        // NOTE: since returned value is represented as error, it is ok to return nil here.
         return .{Ok=LoxObject.{Null=.{}}};
     }
 
@@ -49,6 +63,6 @@ LoxFunction :: struct {
         environment->define("this", LoxObject.{Instance=instance});
         // TODO: free it
         env_ptr := context.allocator->move(environment);
-        return LoxFunction.{declaration=f.declaration, closure=env_ptr};
+        return LoxFunction.{declaration=f.declaration, closure=env_ptr, is_initializer=f.is_initializer};
     }
 }

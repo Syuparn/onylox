@@ -44,7 +44,15 @@ Resolver :: struct {
 
         for method in stmt.methods->as_iter() {
             declaration := FunctionType.METHOD;
-            r->_resolve_function(*method, declaration);
+
+            if method.name.lexeme == "init" {
+                declaration = FunctionType.INITIALIZER;
+            }
+
+            result := r->_resolve_function(*method, declaration);
+            if result->is_err() {
+                return .{Err=result->err()?};
+            }
         }
 
         r->_end_scope();
@@ -120,6 +128,10 @@ Resolver :: struct {
         }
 
         if !is_empty(stmt.value) {
+            if r.current_function == FunctionType.INITIALIZER {
+                return .{Err=RuntimeError.{token=stmt.keyword, message="Can't return a value from an initializer."}};
+            }
+
             result := r->resolve(stmt.value?);
             if result->is_err() {
                 return .{Err=result->err()?};
@@ -325,6 +337,7 @@ Resolver :: struct {
 FunctionType :: enum {
     NONE;
     FUNCTION;
+    INITIALIZER;
     METHOD;
 }
 
