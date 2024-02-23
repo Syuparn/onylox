@@ -79,7 +79,7 @@ LoxCallable :: union {
                 return f->call(interpreter, arguments);
             }
             case .Class as cc {
-                return cc->call();
+                return cc->call(interpreter, arguments);
             }
         }
     }

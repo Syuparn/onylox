@@ -1,0 +1,18 @@
+class Person {
+  init(name, age) {
+    this.name = name;
+    this.age = age;
+  }
+
+  canDrink() {
+    return this.age >= 20;
+  }
+
+  sayHi() {
+    print "I'm " + this.name + ".";
+  }
+}
+
+var jane = Person("Jane", 21);
+print jane.canDrink();
+jane.sayHi();

@@ -1,21 +1,32 @@
 #load "./instance"
 #load "./runtime_error"
 
-use core { Pair, Result }
+use core { Pair, printf, Result }
 use core.list
 
 LoxClass :: struct {
     name: str;
     methods: list.List(Pair(str, &LoxFunction)) = list.make(Pair(str, &LoxFunction));
 
-    call :: (c: LoxClass) -> Result(LoxObject, RuntimeError) {
+    call :: (c: LoxClass, interpreter: &Interpreter, arguments: list.List(LoxObject)) -> Result(LoxObject, RuntimeError) {
         instance := LoxInstance.{klass=c};
         // TODO: free it
         instance_ptr := context.allocator->move(instance);
+
+        initializer := c->find_method("init");
+        if !is_empty(initializer) {
+            initializer?->bind(instance_ptr)->call(interpreter, arguments);
+        }
+
         return .{Ok=LoxObject.{Instance=instance_ptr}};
     }
 
     arity :: (c: LoxClass) -> u8 {
+        initializer := c->find_method("init");
+        if !is_empty(initializer) {
+            return initializer?->arity();
+        }
+
         return 0;
     }
 
@@ -24,7 +35,7 @@ LoxClass :: struct {
             if method_pair.first == name {
                 return *method_pair.second;
             }
-            return Optional.empty(LoxFunction);
         }
+        return Optional.empty(LoxFunction);
     }
 }

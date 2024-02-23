@@ -44,3 +44,8 @@ setup() {
   run wasmer run --mapdir tests:tests onylox.wasm -- tests/testdata/src/error_top_level_this.lox
   assert_output "[line 1] Error at 'this': Can't use 'this' outside of a class."
 }
+
+@test "constructor" {
+  run wasmer run --mapdir tests:tests onylox.wasm -- tests/testdata/src/class_init.lox
+  assert_output "true"$'\n'"I'm Jane."
+}
