@@ -1,5 +1,5 @@
 # onylox
-[Lox language](https://github.com/munificent/craftinginterpreters) implemented in [Onyx](https://onyxlang.io/) (under construction)
+[Lox language](https://github.com/munificent/craftinginterpreters) implemented in [Onyx](https://onyxlang.io/)
 
 # Run
 
