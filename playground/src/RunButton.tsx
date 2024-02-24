@@ -3,6 +3,7 @@ import { Button } from "@chakra-ui/react";
 type Props = {
   label: string;
   onClick: () => void;
+  isLoading: boolean;
 }
 
 function RunButton(props: Props) {
@@ -13,6 +14,7 @@ function RunButton(props: Props) {
         mt="0.4em"
         colorScheme="blackAlpha"
         onClick={props.onClick}
+        isLoading={props.isLoading}
       >
         {props.label}
       </Button>

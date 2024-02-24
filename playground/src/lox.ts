@@ -1,27 +1,30 @@
-let wasmMemory: ArrayBufferLike;
+import { init, Wasmer } from "@wasmer/sdk";
 
-const importObject = {
-  host: {
-    print_str: (ptr: number, len: number) => {
-      const arr = new Uint8Array(wasmMemory, ptr, len)
-      const out = new TextDecoder().decode(arr)
-    },
-    time: () => {
-      return Date.now();
-    },
-  },
-  js: {
-    mem: new WebAssembly.Memory({ initial: 10, maximum: 100 }),
-  },
+export type LoxResult = {
+  code: number;
+  stdout: string;
 }
 
-export async function initLox(): Promise<(source: any) => void>{
-  const response = await fetch('/onylox.wasm')
-  const buffer = await response.arrayBuffer()
-  const datasource = await WebAssembly.instantiate(buffer, importObject);
-  
-  // set memory
-  wasmMemory = datasource.instance.exports.memory as unknown as ArrayBufferLike
+export async function initLox(): Promise<(source: string) => Promise<LoxResult>>{
+  await init()
+  const pkg = await Wasmer.fromRegistry('syuparn/onylox')
 
-  return datasource.instance.exports.runLox as (source: any) => void
+  return async (source: string): Promise<LoxResult> =>  {
+    const instance = await pkg.entrypoint?.run({
+      args: ["/src/script.lox"],
+      mount: {
+        "/src": {
+          "script.lox": source,
+        },
+      },
+    })
+
+    if (instance === undefined) {
+      return {code: 1, stdout: "failed to get instance"}
+    }
+
+    const result = await instance.wait()
+
+    return {code: result.code, stdout: result.stdout}
+  }
 }

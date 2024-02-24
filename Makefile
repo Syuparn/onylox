@@ -2,10 +2,6 @@
 build:
 	onyx build -r wasi -o onylox.wasm main.onyx
 
-.PHONY: build-js
-build-js:
-	onyx build -r js -o playground/public/onylox.wasm main_js.onyx
-
 .PHONY: test
 test: test-unit test-integration
 
