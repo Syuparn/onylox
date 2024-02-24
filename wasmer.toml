@@ -1,0 +1,18 @@
+[package]
+name = 'onylox'
+version = '0.1.0'
+description = 'Lox language implemented in Onyx'
+
+# See more keys and definitions at https://docs.wasmer.io/registry/manifest
+
+[[module]]
+name = 'onylox'
+source = 'onylox.wasm'
+abi = 'wasi'
+
+[module.interfaces]
+wasi = '0.1.0-unstable'
+
+[[command]]
+name = 'onylox'
+module = 'onylox'
