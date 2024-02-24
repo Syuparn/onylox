@@ -19,7 +19,7 @@ jobs:
     - name: prepare Onyx
       run: |
         wasmer --version
-        git clone https://github.com/onyx-lang/onyx --depth 1
+        git clone https://github.com/onyx-lang/onyx
         cd onyx
         git fetch origin v0.1.9-beta
         git checkout v0.1.9-beta
