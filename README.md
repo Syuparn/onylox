@@ -6,6 +6,8 @@
 
 # Playground
 
+Let's try at [https://syuparn.github.io/onylox/](https://syuparn.github.io/onylox/)!
+
 <img src="./images/playground_screenshot.png" width="800px">
 
 # Run locally
