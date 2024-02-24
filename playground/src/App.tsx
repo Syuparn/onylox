@@ -39,7 +39,11 @@ function App() {
         <Spacer />
         <RunButton label='Run' onClick={onClick} isLoading={isRunning}/>
       </Flex>
-      <Text><Link href='https://github.com/munificent/craftinginterpreters'><Text as='u'>Lox</Text></Link> language implemented in <Link href='https://onyxlang.io/'><Text as='u'>Onyx</Text></Link> (WebAssembly)</Text>
+      <Flex>
+        <Text><Link href='https://github.com/munificent/craftinginterpreters'><Text as='u'>Lox</Text></Link> language implemented in <Link href='https://onyxlang.io/'><Text as='u'>Onyx</Text></Link> (WebAssembly)</Text>
+        <Spacer />
+        <Text>Repository: <Link href='https://github.com/Syuparn/onylox'><Text as='u'>https://github.com/Syuparn/onylox</Text></Link></Text>
+      </Flex>
       <Text>NOTE: This is unofficial!</Text>
       <LoxAlert enabled={isfailed} />
       <HStack>
