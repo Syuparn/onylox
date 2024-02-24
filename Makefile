@@ -4,7 +4,7 @@ build:
 
 .PHONY: build-js
 build-js:
-	onyx build -r js -o playground/src/assets/onylox.wasm main.onyx
+	onyx build -r js -o playground/public/onylox.wasm main_js.onyx
 
 .PHONY: test
 test: test-unit test-integration

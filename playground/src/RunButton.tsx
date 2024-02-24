@@ -2,6 +2,7 @@ import { Button } from "@chakra-ui/react";
 
 type Props = {
   label: string;
+  onClick: () => void;
 }
 
 function RunButton(props: Props) {
@@ -11,6 +12,7 @@ function RunButton(props: Props) {
         size="lg"
         mt="0.4em"
         colorScheme="blackAlpha"
+        onClick={props.onClick}
       >
         {props.label}
       </Button>
