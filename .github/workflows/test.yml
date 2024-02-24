@@ -1,6 +1,12 @@
 name: Test
 
-on: [push]
+on:
+  push:
+    paths:
+      - '**.onyx'
+      - '**.lox'
+      - '**.bats'
+      - 'Makefile'
 
 jobs:
   build:
