@@ -2,7 +2,7 @@ import { Flex, HStack, Heading, Link, Spacer, Text } from '@chakra-ui/react'
 import Form from './Form'
 import RunButton from './RunButton'
 import { useState } from 'react'
-import { initLox } from './lox'
+import { runLox } from './lox'
 import LoxAlert from './LoxAlert'
 
 function App() {
@@ -13,7 +13,6 @@ function App() {
 
   const run = () => {
     (async() => {
-      const runLox = await initLox()
       const { code, stdout } = await runLox(input)
 
       setOutput(stdout)

@@ -7,9 +7,10 @@
     <title>Lox Playground</title>
     <!-- HACK: since GitHub pages cannot change headers and WASM requires COOP/COEP Headers, this workaround is used https://docs.wasmer.io/javascript-sdk/how-to/coop-coep-headers -->
     <script src="/coi-serviceworker.js"></script>
+    <!-- NOTE: source must be imported in head (not body), otherwise `document is not defined` error is raised -->
+    <script type="module" src="/src/main.tsx"></script>
   </head>
   <body>
     <div id="root"></div>
-    <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
