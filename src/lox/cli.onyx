@@ -1,0 +1,71 @@
+use core { __flush_stdio, printf, tprintf }
+use core.io
+use core.os
+use core.string
+use runtime.platform
+
+#load "./lox"
+#load "./options"
+
+LoxCLI :: struct {
+    lox: &Lox = &Lox.{};
+
+    main :: (l: &LoxCLI, args: [][&]u8) => {
+        __flush_stdio();
+
+        options := parse_commandline_options(args);
+        switch options {
+            case .Help as h {
+                printf("Usage: onylox [script]\n");
+            }
+            case .Repl as r {
+                printf("> ");
+                l->_run_prompt();
+            }
+            case .FileName as n {
+                l->_run_file(n);
+            }
+            // never reached
+            case #default ---
+        }
+    }
+
+    _run_prompt :: (l: &LoxCLI) => {
+        stdin := LoxCLI._read_stdin();
+        l->_run(stdin);
+        // NOTE: ignore error for following lines
+        had_error = false;
+    }
+
+    _read_stdin :: () -> str {
+        // TODO: impl (platform.__read_from_input did not work properly)
+        return "abc";
+    }
+
+    _run_file :: (l: &LoxCLI, path: str) => {
+        r := os.open(path, os.OpenMode.Read);
+
+        switch r {
+            case .Err as e {
+                printf("Error: failed to read \"{}\": {}\n", path, e);
+                os.exit(65);
+            }
+            case .Ok as file {
+                defer os.close(&file);
+                source := os.get_contents_from_file(&file);
+                l->_run(source);
+            }
+        };
+
+        if had_error {
+            os.exit(65);
+        }
+        if had_runtime_error {
+            os.exit(70);
+        }
+    }
+
+    _run :: (l: &LoxCLI, source: str) => {
+        l.lox->run(source);
+    }
+}
