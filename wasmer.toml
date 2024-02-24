@@ -1,5 +1,5 @@
 [package]
-name = 'onylox'
+name = 'syuparn/onylox'
 version = '0.1.0'
 description = 'Lox language implemented in Onyx'
 
