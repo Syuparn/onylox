@@ -4,7 +4,11 @@
 
 [Lox language](https://github.com/munificent/craftinginterpreters) implemented in [Onyx](https://onyxlang.io/)
 
-# Run
+# Playground
+
+<img src="./images/playground_screenshot.png" width="800px">
+
+# Run locally
 
 ```bash
 $ make build

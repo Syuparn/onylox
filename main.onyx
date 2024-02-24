@@ -1,6 +1,6 @@
-#load "./src/lox/lox"
+#load "./src/lox/cli"
 
 main :: (args) => {
-    l := &Lox.{};
+    l := &LoxCLI.{};
     l->main(args);
 }
