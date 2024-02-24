@@ -1,0 +1,29 @@
+name: Test
+
+# TODO: only when tagged
+on:
+  workflow_run:
+    workflows: ["Test"]
+    types:
+      - completed
+
+jobs:
+  release:
+    name: Release
+    runs-on: ubuntu-20.04
+    steps:
+    - uses: actions/checkout@v3
+      with:
+        submodules: recursive
+    - name: Setup Wasmer
+      uses: wasmerio/setup-wasmer@v3.1
+      with:
+        version: 'v4.2.3'
+    - name: Download a single artifact
+      uses: actions/download-artifact@v4
+      with:
+        name: wasi
+    - name: Publish to Wasmer
+      run: |
+        wasmer login --no-browser $WASMER_TOKEN
+        wasmer publish
