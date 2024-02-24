@@ -16,3 +16,7 @@ $ wasmer run --mapdir examples:examples onylox.wasm -- examples/hello.onyx
 # bats is required
 $ make test
 ```
+
+# Dependencies
+
+- Onyx v0.1.9
