@@ -1,0 +1,7 @@
+# see https://docs.netlify.com/routing/headers/#syntax-for-the-headers-file for details
+# path
+/*
+  # headers for that path:
+  # these are nesessary for wasm to use SharedArrayBuffer
+  Cross-Origin-Opener-Policy: same-origin
+  Cross-Origin-Embedder-Policy: require-corp
