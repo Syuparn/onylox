@@ -1,4 +1,6 @@
-import { init, Wasmer } from "@wasmer/sdk";
+// HACK: import dynamically to avoid `ReferenceError: document is not defined`
+// https://docs.wasmer.io/javascript-sdk/explainers/troubleshooting#referenceerror-document-is-not-defined
+const { init, Wasmer } = await import("@wasmer/sdk");
 
 export type LoxResult = {
   code: number;
