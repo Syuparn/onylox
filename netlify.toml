@@ -1,6 +1,0 @@
-[[headers]]
-  for = "/*"
-  [headers.values]
-    # these are nesessary for wasm to use SharedArrayBuffer
-    Cross-Origin-Opener-Policy = "same-origin"
-    Cross-Origin-Embedder-Policy = "require-corp"
