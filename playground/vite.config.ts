@@ -7,10 +7,5 @@ export default defineConfig({
   // HACK: fix link path because endpoint of GitHub pages is https://syuparn.github.io/onylox/ (not root)
   base: process.env.GITHUB_PAGES
     ? 'onylox'
-    : './',
-  worker: {
-    // NOTE: since service worker is used for COOP/COEP in GitHub Pages, this is nesessary to avoid `ReferenceError: document is not defined`
-    // https://github.com/vitejs/vite/issues/15305
-    format: 'es'
-  }
+    : './'
 })
